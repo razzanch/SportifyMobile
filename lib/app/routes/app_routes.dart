@@ -8,6 +8,10 @@ abstract class Routes {
   static const SUCCED = _Paths.SUCCED;
   static const PROFILE = _Paths.PROFILE;
   static const HOMEPAGE = _Paths.HOMEPAGE;
+  static const NEWS = _Paths.NEWS;
+  static const ARTICLE_DETAIL = _Paths.ARTICLE_DETAIL;
+  static const ARTICLE_DETAIL_WEBVIEW = _Paths.ARTICLE_DETAIL_WEBVIEW;
+  static const REGISTER = _Paths.REGISTER;
 }
 
 abstract class _Paths {
@@ -17,4 +21,8 @@ abstract class _Paths {
   static const SUCCED = '/succed';
   static const PROFILE = '/profile';
   static const HOMEPAGE = '/homepage';
+  static const NEWS = '/news';
+  static const ARTICLE_DETAIL = '/article-detail';
+  static const ARTICLE_DETAIL_WEBVIEW = '/article-detail-webview';
+  static const REGISTER = '/register';
 }

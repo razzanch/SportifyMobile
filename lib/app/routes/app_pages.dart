@@ -1,13 +1,20 @@
 import 'package:get/get.dart';
 
+import '../modules/article_detail/bindings/article_detail_binding.dart';
+import '../modules/article_detail/views/article_detail_view.dart';
+import '../modules/article_detail/views/article_detail_web_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/homepage/bindings/homepage_binding.dart';
 import '../modules/homepage/views/homepage_view.dart';
 import '../modules/login/bindings/login_binding.dart';
 import '../modules/login/views/login_view.dart';
+import '../modules/news/bindings/news_binding.dart';
+import '../modules/news/views/news_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
+import '../modules/register/bindings/register_binding.dart';
+import '../modules/register/views/register_view.dart';
 import '../modules/succed/bindings/succed_binding.dart';
 import '../modules/succed/views/succed_view.dart';
 
@@ -43,6 +50,24 @@ class AppPages {
       name: _Paths.HOMEPAGE,
       page: () => HomepageView(),
       binding: HomepageBinding(),
+    ),
+    GetPage(
+      name: _Paths.NEWS,
+      page: () => NewsView(),
+      binding: NewsBinding(),
+    ),
+    GetPage(
+        name: _Paths.ARTICLE_DETAIL,
+        page: () => ArticleDetailView(article: Get.arguments),
+        binding: ArticleDetailBinding()),
+    GetPage(
+        name: _Paths.ARTICLE_DETAIL_WEBVIEW,
+        page: () => ArticleDetailWebView(article: Get.arguments),
+        binding: ArticleDetailBinding()),
+    GetPage(
+      name: _Paths.REGISTER,
+      page: () => const RegisterView(),
+      binding: RegisterBinding(),
     ),
   ];
 }

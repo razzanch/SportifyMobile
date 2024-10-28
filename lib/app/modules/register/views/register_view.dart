@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart'; // Tambahkan GetX untuk navigasi
+import 'package:get/get.dart';
 import 'package:myapp/app/routes/app_pages.dart';
 
-class LoginView extends StatelessWidget {
-  const LoginView({super.key});
+
+class RegisterView extends StatelessWidget {
+  const RegisterView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -57,25 +58,8 @@ class LoginView extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                // Teks "Belum punya akun? Daftar" untuk navigasi ke halaman Register
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        // Navigasi ke halaman Register
-                        Get.toNamed(Routes.REGISTER);
-                      },
-                      child: const Text(
-                        'Belum punya akun? Daftar',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                // Tombol Login
+                const SizedBox(height: 30),
+                // Tombol Register
                 ElevatedButton(
                   onPressed: () {
                     // Menampilkan dialog saat tombol diklik
@@ -83,14 +67,14 @@ class LoginView extends StatelessWidget {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: const Text('Login Berhasil'),
-                          content: const Text('Anda telah berhasil masuk.'),
+                          title: const Text('Registrasi Berhasil'),
+                          content: const Text('Silahkan Login!'),
                           actions: <Widget>[
                             TextButton(
                               onPressed: () {
-                                // Menutup dialog dan berpindah ke halaman Homepage
+                                // Menutup dialog dan berpindah ke halaman LOGIN
                                 Get.back(); // Menutup dialog
-                                Get.toNamed(Routes.HOMEPAGE); // Navigasi ke halaman homepage
+                                Get.toNamed(Routes.LOGIN); // Navigasi ke halaman login
                               },
                               child: const Text('OK'),
                             ),
@@ -104,7 +88,7 @@ class LoginView extends StatelessWidget {
                     backgroundColor: Colors.black,
                   ),
                   child: const Text(
-                    'Login',
+                    'Register',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),

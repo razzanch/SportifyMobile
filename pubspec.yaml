@@ -37,6 +37,10 @@ dependencies:
   cupertino_icons: ^1.0.6
   get: ^4.6.6
   image_picker:
+  webview_flutter: ^4.8.0
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -78,6 +82,11 @@ flutter:
    - assets/8.png
    - assets/9.png
    - assets/10.png
+   - assets/quote.png
+   - assets/ronaldo.png
+   - assets/lindan.png
+   - assets/ricardo.png
+   - assets/federer.png
 
  
 
