@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart'; // Tambahkan GetX untuk navigasi
+import 'package:get/get.dart'; // Add GetX for navigation
+import 'package:myapp/app/controllers/auth_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
+
+//new
+/*
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+
+}
+*/
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Create an instance of AuthController
+    final AuthController authController = Get.put(AuthController());
+
+    // TextEditingController for email and password
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Padding(
@@ -16,13 +31,13 @@ class LoginView extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon atau Logo
+                // Icon or Logo
                 Image.asset(
                   'assets/logo app.png',
                   height: 100,
                 ),
                 const SizedBox(height: 20),
-                // Nama Aplikasi
+                // App Name
                 const Text(
                   'SPORTIFY',
                   style: TextStyle(
@@ -31,16 +46,17 @@ class LoginView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                // Deskripsi Aplikasi
+                // App Description
                 const Text(
                   'Aplikasi latihan olahraga Anda',
                   style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 30),
-                // Input Username
+                // Input Email
                 TextField(
+                  controller: emailController, // Set controller
                   decoration: InputDecoration(
-                    labelText: 'Username',
+                    labelText: 'Email',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -49,6 +65,7 @@ class LoginView extends StatelessWidget {
                 const SizedBox(height: 20),
                 // Input Password
                 TextField(
+                  controller: passwordController, // Set controller
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -58,13 +75,13 @@ class LoginView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                // Teks "Belum punya akun? Daftar" untuk navigasi ke halaman Register
+                // Text "Don't have an account? Register" for navigation to Register page
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     TextButton(
                       onPressed: () {
-                        // Navigasi ke halaman Register
+                        // Navigate to the Register page
                         Get.toNamed(Routes.REGISTER);
                       },
                       child: const Text(
@@ -75,28 +92,13 @@ class LoginView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                // Tombol Login
+                // Login Button
                 ElevatedButton(
                   onPressed: () {
-                    // Menampilkan dialog saat tombol diklik
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('Login Berhasil'),
-                          content: const Text('Anda telah berhasil masuk.'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                // Menutup dialog dan berpindah ke halaman Homepage
-                                Get.back(); // Menutup dialog
-                                Get.toNamed(Routes.HOMEPAGE); // Navigasi ke halaman homepage
-                              },
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        );
-                      },
+                    // Call login function from AuthController
+                    authController.login(
+                      emailController.text.trim(),
+                      passwordController.text.trim(),
                     );
                   },
                   style: ElevatedButton.styleFrom(

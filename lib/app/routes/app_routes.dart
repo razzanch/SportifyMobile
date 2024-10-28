@@ -12,6 +12,8 @@ abstract class Routes {
   static const ARTICLE_DETAIL = _Paths.ARTICLE_DETAIL;
   static const ARTICLE_DETAIL_WEBVIEW = _Paths.ARTICLE_DETAIL_WEBVIEW;
   static const REGISTER = _Paths.REGISTER;
+  static const CREATE_SCHEDULE = _Paths.CREATE_SCHEDULE;
+  static const SCHEDULE = _Paths.SCHEDULE;
 }
 
 abstract class _Paths {
@@ -25,4 +27,6 @@ abstract class _Paths {
   static const ARTICLE_DETAIL = '/article-detail';
   static const ARTICLE_DETAIL_WEBVIEW = '/article-detail-webview';
   static const REGISTER = '/register';
+  static const CREATE_SCHEDULE = '/create-schedule';
+  static const SCHEDULE = '/schedule';
 }

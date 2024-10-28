@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../modules/article_detail/bindings/article_detail_binding.dart';
 import '../modules/article_detail/views/article_detail_view.dart';
 import '../modules/article_detail/views/article_detail_web_view.dart';
+import '../modules/create_schedule/bindings/create_schedule_binding.dart';
+import '../modules/create_schedule/views/create_schedule_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/homepage/bindings/homepage_binding.dart';
@@ -15,8 +17,8 @@ import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
 import '../modules/register/bindings/register_binding.dart';
 import '../modules/register/views/register_view.dart';
-import '../modules/succed/bindings/succed_binding.dart';
-import '../modules/succed/views/succed_view.dart';
+import '../modules/schedule/bindings/schedule_binding.dart';
+import '../modules/schedule/views/schedule_view.dart';
 
 part 'app_routes.dart';
 
@@ -35,11 +37,6 @@ class AppPages {
       name: _Paths.LOGIN,
       page: () => LoginView(),
       binding: LoginBinding(),
-    ),
-    GetPage(
-      name: _Paths.SUCCED,
-      page: () => SuccedView(),
-      binding: SuccedBinding(),
     ),
     GetPage(
       name: _Paths.PROFILE,
@@ -66,8 +63,18 @@ class AppPages {
         binding: ArticleDetailBinding()),
     GetPage(
       name: _Paths.REGISTER,
-      page: () => const RegisterView(),
+      page: () => RegisterView(),
       binding: RegisterBinding(),
+    ),
+    GetPage(
+      name: _Paths.CREATE_SCHEDULE,
+      page: () => CreateScheduleView(isEdit:false),
+      binding: CreateScheduleBinding(),
+    ),
+    GetPage(
+      name: _Paths.SCHEDULE,
+      page: () => ScheduleView(),
+      binding: ScheduleBinding(),
     ),
   ];
 }

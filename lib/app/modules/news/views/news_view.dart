@@ -118,7 +118,7 @@ class NewsView extends GetView<NewsController> {
               Get.toNamed(Routes.HOMEPAGE);
               break;
             case 1:
-              Get.toNamed(Routes.SUCCED);
+              Get.toNamed(Routes.SCHEDULE);
               break;
             case 2:
               showDialog(

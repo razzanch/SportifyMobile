@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:myapp/app/modules/home/controllers/home_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
 
 class HomeView extends StatefulWidget {
@@ -8,13 +9,20 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  final HomeController homeController = Get.put(HomeController());
   @override
   void initState() {
     super.initState();
 
-    // Menggunakan Future.delayed untuk navigasi setelah 5 detik
-    Future.delayed(const Duration(seconds: 3), () {
-      Get.offNamed(Routes.LOGIN); // Pindah ke halaman LOGIN setelah 5 detik
+    Future.delayed(const Duration(seconds: 3), () async {
+      await homeController.checkLoginStatus(); // Cek status login
+      if (homeController.isLoggedIn.value) {
+        // Jika sudah login, arahkan ke halaman profil
+        Get.offNamed(Routes.HOMEPAGE);
+      } else {
+        // Jika belum login, arahkan ke halaman login
+        Get.offNamed(Routes.LOGIN);
+      }
     });
   }
 

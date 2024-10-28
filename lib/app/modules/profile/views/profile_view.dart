@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
 import 'dart:io';
 
@@ -13,6 +14,9 @@ class _ProfileViewState extends State<ProfileView> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
   int currentIndex = 3;
+  bool _isEditable = false;
+
+  final ProfileController _profileController = Get.put(ProfileController());
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -20,8 +24,15 @@ class _ProfileViewState extends State<ProfileView> {
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
+        _profileController.photoUrl.value = pickedFile.path;
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _profileController.loadUserData();
   }
 
   @override
@@ -30,25 +41,23 @@ class _ProfileViewState extends State<ProfileView> {
       appBar: AppBar(
         title: Text(
           'Profile',
-          style: TextStyle(color: Colors.white), // Set title color to white
+          style: TextStyle(color: Colors.white),
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
-            color: Colors.white, // Set the logout icon color to white
+            color: Colors.white,
             onPressed: () {
-              Get.toNamed(Routes.LOGIN);
+              // Log out and navigate to login
+              Get.offNamed(Routes.LOGIN);
             },
-            tooltip: 'Logout', // Tooltip for the button
+            tooltip: 'Logout',
           ),
         ],
-        backgroundColor: Colors.black, // Set AppBar background color to black
-        elevation: 0, // Remove shadow
-        iconTheme: IconThemeData(
-            color:
-                Colors.white), // Set the color of the back arrow icon to white
+        backgroundColor: Colors.black,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -56,7 +65,6 @@ class _ProfileViewState extends State<ProfileView> {
               color: const Color.fromARGB(255, 0, 0, 0),
               child: Column(
                 children: [
-                  // Header with Avatar
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 0),
                     child: Column(
@@ -64,29 +72,31 @@ class _ProfileViewState extends State<ProfileView> {
                         Center(
                           child: Column(
                             children: [
-                              SizedBox(
-                                  height: 10), // Adjust this value to move down
-                              CircleAvatar(
-                                radius: 60,
-                                backgroundImage: _image == null
-                                    ? AssetImage('assets/permana.jpg')
-                                    : FileImage(_image!) as ImageProvider,
-                              ),
+                              SizedBox(height: 10),
+                              Obx(() => CircleAvatar(
+                                    radius: 60,
+                                    backgroundImage: _profileController
+                                                .photoUrl.value.isNotEmpty
+                                        ? NetworkImage(
+                                            _profileController.photoUrl.value)
+                                        : AssetImage('assets/profildefault.png')
+                                            as ImageProvider,
+                                  )),
                               SizedBox(height: 10),
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                    vertical: 8,
-                                    horizontal:
-                                        16), // Optional: Add some padding
+                                    vertical: 8, horizontal: 16),
                                 child: TextButton(
-                                  onPressed: _pickImage,
+                                  onPressed: () =>
+                                      _profileController.pickProfileImage(
+                                    _profileController.getCurrentUserId()!,
+                                  ),
                                   child: Text(
                                     'Edit Photo or Avatar',
                                     style: TextStyle(
                                       color: Colors.teal,
-                                      fontSize: 18, // Increase font size here
-                                      fontWeight:
-                                          FontWeight.bold, // Make it bold
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
@@ -104,93 +114,136 @@ class _ProfileViewState extends State<ProfileView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextField(
-                          style: TextStyle(
-                              color:
-                                  Colors.white), // Set the text color to white
-                          decoration: InputDecoration(
-                            filled: true, // Enable fill color
-                            fillColor: Color.fromRGBO(
-                                31, 31, 31, 1), // Set the background color
-                            labelText: 'Name',
-                            labelStyle: TextStyle(
-                                color: Colors
-                                    .white), // Set label text color to white
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide.none, // Remove the border line
-                            ),
-                          ),
-                        ),
+                        Obx(() => TextField(
+                              enabled: _isEditable,
+                              style: TextStyle(
+                                  color: _isEditable
+                                      ? Colors.black
+                                      : Colors.white),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: _isEditable
+                                    ? Colors.white
+                                    : const Color.fromRGBO(31, 31, 31, 1),
+                                labelText: 'Name',
+                                labelStyle: TextStyle(
+                                    color: _isEditable
+                                        ? Colors.black
+                                        : Colors.white),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              controller: TextEditingController(
+                                  text: _profileController.nama.value),
+                              onChanged: (value) {
+                                _profileController.nama.value = value;
+                              },
+                            )),
+
+                        SizedBox(height: 15),
+                        Obx(() => TextField(
+                              enabled: _isEditable,
+                              style: TextStyle(
+                                  color: _isEditable
+                                      ? Colors.black
+                                      : Colors.white),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: _isEditable
+                                    ? Colors.white
+                                    : const Color.fromRGBO(31, 31, 31, 1),
+                                labelText: 'Nomor Handphone',
+                                labelStyle: TextStyle(
+                                    color: _isEditable
+                                        ? Colors.black
+                                        : Colors.white),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              controller: TextEditingController(
+                                  text:
+                                      _profileController.nomorhandphone.value),
+                              onChanged: (value) {
+                                _profileController.nomorhandphone.value = value;
+                              },
+                            )),
+                        SizedBox(height: 15),
+                        Obx(() => TextField(
+                              enabled: _isEditable,
+                              style: TextStyle(
+                                  color: _isEditable
+                                      ? Colors.black
+                                      : Colors.white),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: _isEditable
+                                    ? Colors.white
+                                    : const Color.fromRGBO(31, 31, 31, 1),
+                                labelText: 'Email',
+                                labelStyle: TextStyle(
+                                    color: _isEditable
+                                        ? Colors.black
+                                        : Colors.white),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              controller: TextEditingController(
+                                  text: _profileController.email.value),
+                              onChanged: (value) {
+                                _profileController.email.value = value;
+                              },
+                            )),
+                        SizedBox(height: 15),
+                        Obx(() => TextField(
+                              enabled: _isEditable,
+                              style: TextStyle(
+                                  color: _isEditable
+                                      ? Colors.black
+                                      : Colors.white),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: _isEditable
+                                    ? Colors.white
+                                    : const Color.fromRGBO(31, 31, 31, 1),
+                                labelText: 'Instagram',
+                                labelStyle: TextStyle(
+                                    color: _isEditable
+                                        ? Colors.black
+                                        : Colors.white),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              controller: TextEditingController(
+                                  text: _profileController.instagram.value),
+                              onChanged: (value) {
+                                _profileController.instagram.value = value;
+                              },
+                            )),
+
                         SizedBox(height: 10),
-                        TextField(
-                          style: TextStyle(
-                              color:
-                                  Colors.white), // Set the text color to white
-                          decoration: InputDecoration(
-                            filled: true, // Enable fill color
-                            fillColor: Color.fromRGBO(
-                                31, 31, 31, 1), // Set the background color
-                            labelText: 'Phone Number',
-                            labelStyle: TextStyle(
-                                color: Colors
-                                    .white), // Set label text color to white
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide.none, // Remove the border line
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        TextField(
-                          style: TextStyle(
-                              color:
-                                  Colors.white), // Set the text color to white
-                          decoration: InputDecoration(
-                            filled: true, // Enable fill color
-                            fillColor: Color.fromRGBO(
-                                31, 31, 31, 1), // Set the background color
-                            labelText: 'Email',
-                            labelStyle: TextStyle(
-                                color: Colors
-                                    .white), // Set label text color to white
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide.none, // Remove the border line
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        TextField(
-                          style: TextStyle(
-                              color:
-                                  Colors.white), // Set the text color to white
-                          decoration: InputDecoration(
-                            filled: true, // Enable fill color
-                            fillColor: Color.fromRGBO(
-                                31, 31, 31, 1), // Set the background color
-                            labelText: 'Instagram',
-                            labelStyle: TextStyle(
-                                color: Colors
-                                    .white), // Set label text color to white
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide.none, // Remove the border line
-                            ),
-                          ),
-                        ),
+                        // Additional TextFields for phone, email, etc., similar to the above TextField
                         SizedBox(height: 30),
                         Center(
                           child: ElevatedButton(
                             onPressed: () {
-                              // Action untuk update profile (jika diperlukan)
+                              if (_isEditable) {
+                                _profileController.saveDataToFirestore(
+                                    _profileController.getCurrentUserId()!);
+                              }
+                              setState(() {
+                                _isEditable = !_isEditable;
+                              });
                             },
                             child: Text(
-                              'Update Profile',
+                              _isEditable ? 'Save Profile' : 'Update Profile',
                               style: TextStyle(color: Colors.white),
                             ),
                             style: ElevatedButton.styleFrom(
@@ -207,27 +260,25 @@ class _ProfileViewState extends State<ProfileView> {
                 ],
               ),
             ),
-            // Placeholder to avoid overflow
           ],
         ),
       ),
       // Bottom Navigation Bar (Navbar)
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Menampilkan semua item
+        type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.red[700],
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
-        currentIndex: currentIndex, // Menandakan halaman profil sedang aktif
+        currentIndex: currentIndex,
         onTap: (index) {
           switch (index) {
             case 0:
               Get.toNamed(Routes.HOMEPAGE);
               break;
             case 1:
-              Get.toNamed(Routes.SUCCED);
+              Get.toNamed(Routes.SCHEDULE);
               break;
             case 2:
-              // Navigasi ke halaman news
               Get.toNamed(Routes.NEWS);
               break;
             case 3:
@@ -236,11 +287,12 @@ class _ProfileViewState extends State<ProfileView> {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     title: const Text('Peringatan'),
-                    content: const Text('Anda sedang berada di halaman Berita'),
+                    content:
+                        const Text('Anda sedang berada di halaman Profile'),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () {
-                          Get.back(); // Tutup dialog
+                          Get.back();
                         },
                         child: const Text('OK'),
                       ),
@@ -258,7 +310,7 @@ class _ProfileViewState extends State<ProfileView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (currentIndex == 0) // Ganti '2' dengan 'currentIndex'
+                  if (currentIndex == 0)
                     Container(
                       height: 3,
                       width: 34,
@@ -300,7 +352,7 @@ class _ProfileViewState extends State<ProfileView> {
                       width: 34,
                       color: Colors.white,
                     ),
-                  Icon(Icons.article),
+                  Icon(Icons.newspaper),
                 ],
               ),
             ),
@@ -322,35 +374,10 @@ class _ProfileViewState extends State<ProfileView> {
                 ],
               ),
             ),
-            label: 'Profil',
+            label: 'Profile',
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTextField(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 5),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(31, 31, 31, 1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            value,
-            style: TextStyle(fontSize: 16),
-          ),
-        ),
-      ],
     );
   }
 }

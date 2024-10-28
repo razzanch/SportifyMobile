@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 
-class SuccedController extends GetxController {
-  //TODO: Implement SuccedController
+class ScheduleController extends GetxController {
+  //TODO: Implement ScheduleController
 
   final count = 0.obs;
   @override

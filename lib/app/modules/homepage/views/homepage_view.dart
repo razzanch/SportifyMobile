@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:myapp/app/modules/home/controllers/home_controller.dart';
+import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
 
-// ignore: must_be_immutable
-class HomepageView extends GetView<HomeController> {
-  
-  HomepageView({super.key});
+class HomepageView extends StatefulWidget {
+  const HomepageView({Key? key}) : super(key: key);
+
+  @override
+  _HomepageViewState createState() => _HomepageViewState();
+}
+
+class _HomepageViewState extends State<HomepageView> {
+  final HomeController controller = Get.put(HomeController());
+  final ProfileController _profileController = Get.put(ProfileController());
 
   int currentIndexnav = 0;
 
-  
-
-  // Daftar nama file gambar
   final List<String> imageNames = [
     'assets/1.png',
     'assets/2.png',
@@ -26,7 +30,19 @@ class HomepageView extends GetView<HomeController> {
     'assets/10.png',
   ];
 
-  // Daftar gambar yang akan ditampilkan secara bergantian
+  final List<String> sportNames = [
+    "Sepak Bola",
+    "Futsal",
+    "Bulutangkis",
+    "Pencak Silat",
+    "Berenang",
+    "Basket",
+    "Tennis",
+    "Karate",
+    "Taekwondo",
+    "Voly",
+  ];
+
   final List<String> rotatingImages = [
     'assets/quote.png',
     'assets/ronaldo.png',
@@ -35,33 +51,32 @@ class HomepageView extends GetView<HomeController> {
     'assets/federer.png',
   ];
 
-  // Indeks gambar yang sedang ditampilkan
   final RxInt currentIndex = 0.obs;
 
-  
+  @override
+  void initState() {
+    super.initState();
+    _profileController.loadUserData();
+  }
 
   @override
   Widget build(BuildContext context) {
-    
-    // Timer untuk mengubah gambar setiap beberapa detik
     Future.delayed(Duration(seconds: 1), () {
       if (currentIndex.value < rotatingImages.length - 1) {
         currentIndex.value++;
       } else {
         currentIndex.value = 0;
       }
-      // Restart timer
-      Future.delayed(Duration(seconds: 0), () {});
     });
 
     return Scaffold(
-      backgroundColor: Colors.black, // Ubah background menjadi hitam
+      backgroundColor: Colors.black,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.black,
         title: Column(
           children: [
-            const SizedBox(height: 10), // Adjust this value to control the space above the TextField
+            const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               decoration: BoxDecoration(
@@ -78,27 +93,22 @@ class HomepageView extends GetView<HomeController> {
                   hintStyle: const TextStyle(color: Colors.white54),
                   border: InputBorder.none,
                   prefixIcon: const Icon(Icons.search, color: Colors.white),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12.0), // Adjust this value to control the vertical position
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
                 ),
               ),
             ),
           ],
         ),
         actions: [
-          Padding(
+         Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.grey,
-              radius: 20.0,
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/permana.jpg',
-                  fit: BoxFit.cover,
-                  width: 40.0,
-                  height: 40.0,
-                ),
-              ),
-            ),
+            child: Obx(() => CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  radius: 20.0,
+                  backgroundImage: _profileController.photoUrl.value.isNotEmpty
+                      ? NetworkImage(_profileController.photoUrl.value)
+                      : AssetImage('assets/profildefault.png') as ImageProvider,
+                )),
           ),
         ],
       ),
@@ -108,45 +118,47 @@ class HomepageView extends GetView<HomeController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 10), // Jarak antara konten
               const SizedBox(height: 10),
               // Menampilkan gambar yang berputar
               Obx(() => Container(
-                margin: const EdgeInsets.only(left: 10.0, right: 20.0, bottom: 10.0),
-                padding: const EdgeInsets.all(10.0), // Padding di dalam container
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1f1f1f), // Warna container
-                  borderRadius: BorderRadius.circular(20.0), // Sudut melengkung
-                ),
-                child: Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: Image.asset(
-                        rotatingImages[currentIndex.value],
-                        fit: BoxFit.cover,
-                        height: 200, // Mengatur tinggi gambar
-                      ),
+                    margin: const EdgeInsets.only(
+                        left: 10.0, right: 20.0, bottom: 10.0),
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1f1f1f),
+                      borderRadius: BorderRadius.circular(20.0),
                     ),
-                    // Indikator lingkaran
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(rotatingImages.length, (index) {
-                        return Container(
-                          margin: const EdgeInsets.all(5.0),
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: index == currentIndex.value ? Colors.white : Colors.grey,
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10.0),
+                          child: Image.asset(
+                            rotatingImages[currentIndex.value],
+                            fit: BoxFit.cover,
+                            height: 200,
                           ),
-                        );
-                      }),
+                        ),
+                        // Indikator lingkaran
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children:
+                              List.generate(rotatingImages.length, (index) {
+                            return Container(
+                              margin: const EdgeInsets.all(5.0),
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: index == currentIndex.value
+                                    ? Colors.white
+                                    : Colors.grey,
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              )),
-              // Memindahkan teks di sini, di bawah tampilan gambar
+                  )),
               Padding(
                 padding: const EdgeInsets.only(left: 10.0, bottom: 10.0),
                 child: const Text(
@@ -159,13 +171,12 @@ class HomepageView extends GetView<HomeController> {
                   ),
                 ),
               ),
-              // Container untuk menampung gambar
               Container(
                 margin: const EdgeInsets.only(left: 10.0, right: 20.0),
-                padding: const EdgeInsets.all(10.0), // Padding di dalam container
+                padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1f1f1f), // Warna container
-                  borderRadius: BorderRadius.circular(20.0), // Sudut melengkung
+                  color: const Color(0xFF1f1f1f),
+                  borderRadius: BorderRadius.circular(20.0),
                 ),
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -173,15 +184,23 @@ class HomepageView extends GetView<HomeController> {
                     crossAxisSpacing: 10.0,
                     mainAxisSpacing: 10.0,
                   ),
-                  itemCount: imageNames.length, // Menggunakan jumlah gambar dalam daftar
-                  physics: const NeverScrollableScrollPhysics(), // Mencegah scroll di dalam GridView
-                  shrinkWrap: true, // Mengatur ukuran GridView agar sesuai dengan konten
+                  itemCount: imageNames.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
                   itemBuilder: (context, index) {
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(10.0),
                       child: GestureDetector(
                         onTap: () {
-                          _showConfirmationDialog(context, index);
+                          // Navigasi ke CreateSchedule dan mengisi TextField dengan nama yang sesuai
+                          Get.toNamed(Routes.CREATE_SCHEDULE, arguments: {
+                            'name': sportNames[index],
+                            'isEdit': false,
+                            'location':
+                                '', // Tambahkan ini jika ingin mengisi lokasi
+                            'date':
+                                '', // Tambahkan ini jika ingin mengisi tanggal
+                          });
                         },
                         child: Image.asset(
                           imageNames[index],
@@ -196,17 +215,17 @@ class HomepageView extends GetView<HomeController> {
           ),
         ),
       ),
-      // Bottom Navigation Bar (Navbar)
+      // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Menampilkan semua item
+        type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.red[700],
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
-        currentIndex: currentIndexnav, // Menandakan halaman profil sedang aktif
+        currentIndex: currentIndexnav,
         onTap: (index) {
           switch (index) {
             case 0:
-            showDialog(
+              showDialog(
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
@@ -215,7 +234,7 @@ class HomepageView extends GetView<HomeController> {
                     actions: <Widget>[
                       TextButton(
                         onPressed: () {
-                          Get.back(); // Tutup dialog
+                          Get.back();
                         },
                         child: const Text('OK'),
                       ),
@@ -225,10 +244,9 @@ class HomepageView extends GetView<HomeController> {
               );
               break;
             case 1:
-              Get.toNamed(Routes.SUCCED);
+              Get.toNamed(Routes.SCHEDULE);
               break;
             case 2:
-              // Navigasi ke halaman news
               Get.toNamed(Routes.NEWS);
               break;
             case 3:
@@ -243,7 +261,7 @@ class HomepageView extends GetView<HomeController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (currentIndex == 0) // Ganti '2' dengan 'currentIndex'
+                  if (currentIndexnav == 0)
                     Container(
                       height: 3,
                       width: 34,
@@ -261,7 +279,7 @@ class HomepageView extends GetView<HomeController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (currentIndex == 1)
+                  if (currentIndexnav == 1)
                     Container(
                       height: 3,
                       width: 34,
@@ -279,7 +297,7 @@ class HomepageView extends GetView<HomeController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (currentIndex == 2)
+                  if (currentIndexnav == 2)
                     Container(
                       height: 3,
                       width: 34,
@@ -297,7 +315,7 @@ class HomepageView extends GetView<HomeController> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (currentIndex == 3)
+                  if (currentIndexnav == 3)
                     Container(
                       height: 3,
                       width: 34,
@@ -307,37 +325,10 @@ class HomepageView extends GetView<HomeController> {
                 ],
               ),
             ),
-            label: 'Profil',
+            label: 'Profile',
           ),
         ],
       ),
-    );
-  }
-
-  void _showConfirmationDialog(BuildContext context, int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Konfirmasi', style: TextStyle(color: Colors.black)),
-          content: const Text('Apakah Anda ingin memilih jadwal olahraga ini?', style: TextStyle(color: Colors.black)),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Menutup dialog
-              },
-              child: const Text('Tidak', style: TextStyle(color: Colors.black)),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Menutup dialog
-                Get.toNamed(Routes.SUCCED);
-              },
-              child: const Text('Iya', style: TextStyle(color: Colors.black)),
-            ),
-          ],
-        );
-      },
     );
   }
 }
