@@ -3,12 +3,6 @@ import 'package:get/get.dart'; // Add GetX for navigation
 import 'package:myapp/app/controllers/auth_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
 
-//new
-/*
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-
-}
-*/
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -100,6 +94,7 @@ class LoginView extends StatelessWidget {
                       emailController.text.trim(),
                       passwordController.text.trim(),
                     );
+                    
                   },
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
