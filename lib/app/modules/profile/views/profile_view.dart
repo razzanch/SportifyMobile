@@ -147,7 +147,7 @@ class _ProfileViewState extends State<ProfileView> {
                               },
                             )),
 
-                        SizedBox(height: 15),
+                        SizedBox(height: 40),
                         Obx(() => TextField(
                               enabled: _isEditable,
                               style: TextStyle(
@@ -176,7 +176,7 @@ class _ProfileViewState extends State<ProfileView> {
                                 _profileController.nomorhandphone.value = value;
                               },
                             )),
-                        SizedBox(height: 15),
+                        SizedBox(height: 40),
                         Obx(() => TextField(
                               enabled: _isEditable,
                               style: TextStyle(
@@ -204,7 +204,7 @@ class _ProfileViewState extends State<ProfileView> {
                                 _profileController.email.value = value;
                               },
                             )),
-                        SizedBox(height: 15),
+                        SizedBox(height: 40),
                         Obx(() => TextField(
                               enabled: _isEditable,
                               style: TextStyle(
@@ -233,7 +233,7 @@ class _ProfileViewState extends State<ProfileView> {
                               },
                             )),
                         // Additional TextFields for phone, email, etc., similar to the above TextField
-                        SizedBox(height: 15),
+                        SizedBox(height: 40),
                         Center(
                           child: Container(
                             width: double
@@ -264,7 +264,7 @@ class _ProfileViewState extends State<ProfileView> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 15),
+                        SizedBox(height: 40),
                         Center(
                           child: Container(
                             width: double

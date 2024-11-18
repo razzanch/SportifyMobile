@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -25,6 +26,7 @@ class CreateScheduleView extends StatefulWidget {
 
 class _CreateScheduleViewState extends State<CreateScheduleView> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  
   final TextEditingController controllerName = TextEditingController();
   final TextEditingController controllerLocation = TextEditingController();
   final TextEditingController controllerDate = TextEditingController();
@@ -33,17 +35,19 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
   late double heightScreen;
   DateTime selectedDate = DateTime.now().add(Duration(days: 1));
   bool isLoading = false;
+  String currentUserUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+  
 
   @override
   void initState() {
     super.initState();
 
+    
     // Capture arguments using GetX
     final arguments = Get.arguments;
     if (arguments != null) {
       // Create local variables for assignments
       bool isEdit = arguments['isEdit'] ?? false;
-      String documentId = arguments['documentId'] ?? '';
       String name = arguments['name'] ?? ''; // Ambil nama dari argumen
       String location = arguments['location'] ?? '';
       String dateString = arguments['date'] ?? '';
@@ -172,6 +176,7 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
                         await transaction.update(
                           documentTask,
                           <String, dynamic>{
+                            'uid':currentUserUid,
                             'name': name,
                             'location': location,
                             'date': date,
@@ -183,6 +188,7 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
                   } else {
                     CollectionReference tasks = firestore.collection('sports');
                     await tasks.add(<String, dynamic>{
+                      'uid':currentUserUid,
                       'name': name,
                       'location': location,
                       'date': date,

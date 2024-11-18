@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:myapp/app/modules/create_schedule/views/create_schedule_view.dart';
@@ -14,6 +15,7 @@ class _ScheduleViewState extends State<ScheduleView> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final ProfileController _profileController = Get.put(ProfileController());
   int currentIndex = 1; // Set initial index to 1 (Schedule)
+  String currentUserUid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   void initState() {
@@ -88,7 +90,7 @@ class _ScheduleViewState extends State<ScheduleView> {
               ),
               StreamBuilder<QuerySnapshot>(
                 stream:
-                    firestore.collection('sports').orderBy('date').snapshots(),
+                    firestore.collection('sports') .where('uid', isEqualTo: currentUserUid).snapshots(),
                 builder: (BuildContext context,
                     AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (!snapshot.hasData) {
@@ -277,7 +279,7 @@ class _ScheduleViewState extends State<ScheduleView> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Peringatan'),
-              content: const Text('Anda sedang berada di halaman Schedule'),
+              content: const Text('Anda sedang berada di halaman '),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
