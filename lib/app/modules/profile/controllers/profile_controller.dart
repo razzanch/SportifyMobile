@@ -70,25 +70,86 @@ class ProfileController extends GetxController {
     }
   }
 
-  // Memilih dan mengunggah foto profil
-// Memilih dan mengunggah foto profil
-  Future<void> pickProfileImage(String userId) async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  // Fungsi untuk memunculkan dialog pemilihan sumber gambar
+  Future<void> showImageSourceDialog(String userId) async {
+    return showDialog(
+      context: Get.context!,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Pilih Sumber Gambar"),
+          content: Text("Pilih apakah Anda ingin mengambil foto dari Kamera atau Galeri."),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await pickProfileImage(userId, ImageSource.camera);
+              },
+              child: Text("Kamera"),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await pickProfileImage(userId, ImageSource.gallery);
+              },
+              child: Text("Galeri"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
+  // Memilih dan mengunggah foto profil dari sumber yang dipilih
+  // Fungsi untuk memilih gambar dari kamera atau galeri
+  Future<void> pickProfileImage(String userId, ImageSource camera) async {
+    // Menampilkan dialog untuk memilih antara Kamera atau Galeri
+    await Get.defaultDialog(
+      title: "Pilih Sumber Gambar",
+      middleText: "Pilih antara Kamera atau Galeri untuk foto profil.",
+      actions: [
+        TextButton(
+          onPressed: () {
+            // Memilih dari Galeri
+            pickProfileImageFromGallery(userId);
+            Get.back();
+          },
+          child: Text("Galeri"),
+        ),
+        TextButton(
+          onPressed: () {
+            // Memilih dari Kamera
+            pickProfileImageWithCamera(userId);
+            Get.back();
+          },
+          child: Text("Kamera"),
+        ),
+      ],
+    );
+  }
+
+  Future<void> pickProfileImageFromGallery(String userId) async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       await uploadProfileImage(File(pickedFile.path), userId);
-
-      // Memberikan jeda untuk pembaruan
       await Future.delayed(Duration(milliseconds: 500));
       photoUrl.refresh();
-
-      // Tampilkan snackbar
       Get.snackbar("Sukses", "Foto profil berhasil diunggah!");
-
-      // Kembali ke halaman sebelumnya
       Get.back();
     } else {
-      // Jika tidak ada file yang dipilih
+      Get.snackbar("Gagal", "Tidak ada foto yang dipilih!");
+    }
+  }
+
+  // Fungsi untuk memilih gambar dari kamera
+  Future<void> pickProfileImageWithCamera(String userId) async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      await uploadProfileImage(File(pickedFile.path), userId);
+      await Future.delayed(Duration(milliseconds: 500));
+      photoUrl.refresh();
+      Get.snackbar("Sukses", "Foto profil berhasil diunggah!");
+      Get.back();
+    } else {
       Get.snackbar("Gagal", "Tidak ada foto yang dipilih!");
     }
   }
@@ -96,30 +157,23 @@ class ProfileController extends GetxController {
   // Mengunggah foto profil ke Firebase Storage
   Future<void> uploadProfileImage(File imageFile, String userId) async {
     try {
-      String fileName = basename(imageFile.path);
+      String fileName = imageFile.path.split('/').last;
       Reference storageRef = FirebaseStorage.instance
           .ref()
           .child('profile_images/$userId/$fileName');
 
-      // Unggah gambar
       await storageRef.putFile(imageFile);
 
-      // Ambil URL setelah diunggah
       String downloadUrl = await storageRef.getDownloadURL();
-      photoUrl.value = '$downloadUrl?${DateTime.now().millisecondsSinceEpoch}';
 
-      // Print untuk memastikan downloadUrl telah diperbarui
-      print('URL baru untuk foto profil: $downloadUrl');
-
-      // Simpan URL di Firestore
+      // Update photo URL di Firestore
       await FirebaseFirestore.instance
           .collection('profile')
           .doc(userId)
           .set({'photo_url': downloadUrl}, SetOptions(merge: true));
 
-      print('Foto profil berhasil diunggah.');
+      photoUrl.value = downloadUrl;
     } catch (e) {
-      print('Error mengunggah foto profil: $e');
       Get.snackbar("Error", "Gagal mengunggah foto profil: $e");
     }
   }

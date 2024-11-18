@@ -1,21 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:myapp/app/modules/home/controllers/home_controller.dart';
+import 'package:myapp/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
 
-class HomepageView extends StatefulWidget {
-  const HomepageView({Key? key}) : super(key: key);
-
-  @override
-  _HomepageViewState createState() => _HomepageViewState();
-}
-
-class _HomepageViewState extends State<HomepageView> {
-  final HomeController controller = Get.put(HomeController());
+class HomepageView extends StatelessWidget {
+  // Mengambil instance HomepageController menggunakan GetX
+  final HomepageController controller = Get.put(HomepageController());
   final ProfileController _profileController = Get.put(ProfileController());
 
-  int currentIndexnav = 0;
+  int currentIndexNow = 0;
 
   final List<String> imageNames = [
     'assets/1.png',
@@ -51,16 +45,12 @@ class _HomepageViewState extends State<HomepageView> {
     'assets/federer.png',
   ];
 
+  // Reactive int untuk mengganti gambar yang sedang ditampilkan
   final RxInt currentIndex = 0.obs;
 
   @override
-  void initState() {
-    super.initState();
-    _profileController.loadUserData();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Setiap 1 detik, update gambar yang ditampilkan
     Future.delayed(Duration(seconds: 1), () {
       if (currentIndex.value < rotatingImages.length - 1) {
         currentIndex.value++;
@@ -83,24 +73,38 @@ class _HomepageViewState extends State<HomepageView> {
                 color: const Color(0xFF1f1f1f),
                 borderRadius: BorderRadius.circular(30.0),
               ),
-              child: TextField(
-                onChanged: (value) {
-                  print('Olahraga yang dicari: $value');
-                },
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Cari Olahraga',
-                  hintStyle: const TextStyle(color: Colors.white54),
-                  border: InputBorder.none,
-                  prefixIcon: const Icon(Icons.search, color: Colors.white),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
-                ),
-              ),
+              child: Obx(() {
+                return TextField(
+                  controller: controller.textController,
+                  onChanged: (value) {
+                    controller.recognizedText.value = value;
+                    controller.searchForSport(
+                        value); // Panggil pencarian saat teks berubah
+                  },
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Cari Olahraga',
+                    hintStyle: const TextStyle(color: Colors.white54),
+                    border: InputBorder.none,
+                    prefixIcon: const Icon(Icons.search, color: Colors.white),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        controller.isListening.value
+                            ? Icons.mic
+                            : Icons.mic_none,
+                        color: Colors.white,
+                      ),
+                      onPressed: controller.toggleListening,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
+                  ),
+                );
+              }),
             ),
           ],
         ),
         actions: [
-         Padding(
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Obx(() => CircleAvatar(
                   backgroundColor: Colors.grey,
@@ -178,157 +182,194 @@ class _HomepageViewState extends State<HomepageView> {
                   color: const Color(0xFF1f1f1f),
                   borderRadius: BorderRadius.circular(20.0),
                 ),
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10.0,
-                    mainAxisSpacing: 10.0,
-                  ),
-                  itemCount: imageNames.length,
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          // Navigasi ke CreateSchedule dan mengisi TextField dengan nama yang sesuai
-                          Get.toNamed(Routes.CREATE_SCHEDULE, arguments: {
-                            'name': sportNames[index],
-                            'isEdit': false,
-                            'location':
-                                '', // Tambahkan ini jika ingin mengisi lokasi
-                            'date':
-                                '', // Tambahkan ini jika ingin mengisi tanggal
-                          });
-                        },
-                        child: Image.asset(
-                          imageNames[index],
-                          fit: BoxFit.cover,
+                child: Obx(() {
+                  // Mendapatkan hasil pencarian yang langsung ter-update
+                  var filteredResults = controller.searchResults.isEmpty
+                      ? imageNames
+                      : controller.searchResults
+                          .map((index) => imageNames[index])
+                          .toList();
+
+                  return GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10.0,
+                      mainAxisSpacing: 10.0,
+                    ),
+                    itemCount: filteredResults.length,
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            // Navigasi ke CreateSchedule dengan parameter nama olahraga yang sesuai
+                            Get.toNamed(Routes.CREATE_SCHEDULE, arguments: {
+                              'name': sportNames[
+                                  controller.searchResults.isEmpty
+                                      ? index
+                                      : controller.searchResults[index]],
+                              'isEdit': false,
+                              'location': '',
+                              'date': '',
+                            });
+                          },
+                          child: Image.asset(
+                            filteredResults[
+                                index], // Menampilkan gambar sesuai dengan hasil pencarian
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  );
+                }),
               ),
             ],
           ),
         ),
       ),
+
       // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.red[700],
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        currentIndex: currentIndexnav,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Peringatan'),
-                    content: const Text('Anda sedang berada di halaman Berita'),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () {
-                          Get.back();
-                        },
-                        child: const Text('OK'),
-                      ),
-                    ],
-                  );
-                },
-              );
-              break;
-            case 1:
-              Get.toNamed(Routes.SCHEDULE);
-              break;
-            case 2:
-              Get.toNamed(Routes.NEWS);
-              break;
-            case 3:
-              Get.toNamed(Routes.PROFILE);
-              break;
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Container(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (currentIndexnav == 0)
-                    Container(
-                      height: 3,
-                      width: 34,
-                      color: Colors.white,
-                    ),
-                  Icon(Icons.home),
-                ],
+  type: BottomNavigationBarType.fixed,
+  backgroundColor: Colors.red[700],
+  selectedItemColor: Colors.white,
+  unselectedItemColor: Colors.white70,
+  currentIndex: currentIndexNow,
+  onTap: (index) {
+    switch (index) {
+      case 0:
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Peringatan'),
+              content: const Text('Anda sedang berada di halaman HomePage'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        break;
+        
+      case 1:
+        Get.toNamed(Routes.SCHEDULE);
+        break;
+      case 2:
+      Get.toNamed(Routes.NEWS);
+        break;
+        
+      case 3:
+      Get.toNamed(Routes.PLAYBACKS); // Arahkan ke Playbacks
+        break;
+       
+      case 4:
+      Get.toNamed(Routes.PROFILE);
+        break;
+    }
+  },
+  items: [
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 0)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
               ),
-            ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (currentIndexnav == 1)
-                    Container(
-                      height: 3,
-                      width: 34,
-                      color: Colors.white,
-                    ),
-                  Icon(Icons.calendar_today),
-                ],
-              ),
-            ),
-            label: 'Schedule',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (currentIndexnav == 2)
-                    Container(
-                      height: 3,
-                      width: 34,
-                      color: Colors.white,
-                    ),
-                  Icon(Icons.article),
-                ],
-              ),
-            ),
-            label: 'News',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (currentIndexnav == 3)
-                    Container(
-                      height: 3,
-                      width: 34,
-                      color: Colors.white,
-                    ),
-                  Icon(Icons.person),
-                ],
-              ),
-            ),
-            label: 'Profile',
-          ),
-        ],
+            Icon(Icons.home),
+          ],
+        ),
       ),
+      label: 'Home',
+    ),
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 1)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
+              ),
+            Icon(Icons.calendar_today),
+          ],
+        ),
+      ),
+      label: 'Schedule',
+    ),
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 2)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
+              ),
+            Icon(Icons.newspaper),
+          ],
+        ),
+      ),
+      label: 'News',
+    ),
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 3)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
+              ),
+            Icon(Icons.play_arrow), // Icon Playbacks
+          ],
+        ),
+      ),
+      label: 'Playbacks',
+    ),
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 4)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
+              ),
+            Icon(Icons.person),
+          ],
+        ),
+      ),
+      label: 'Profile',
+    ),
+  ],
+),
     );
   }
 }

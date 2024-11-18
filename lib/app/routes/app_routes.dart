@@ -14,6 +14,9 @@ abstract class Routes {
   static const REGISTER = _Paths.REGISTER;
   static const CREATE_SCHEDULE = _Paths.CREATE_SCHEDULE;
   static const SCHEDULE = _Paths.SCHEDULE;
+  static const SPORTACTIVITY = _Paths.SPORTACTIVITY;
+  static const PLAYBACKS = _Paths.PLAYBACKS;
+  static const SETTING_AUDIO = _Paths.SETTING_AUDIO;
 }
 
 abstract class _Paths {
@@ -29,4 +32,7 @@ abstract class _Paths {
   static const REGISTER = '/register';
   static const CREATE_SCHEDULE = '/create-schedule';
   static const SCHEDULE = '/schedule';
+  static const SPORTACTIVITY = '/sportactivity';
+  static const PLAYBACKS = '/playbacks';
+  static const SETTING_AUDIO = '/setting-audio';
 }

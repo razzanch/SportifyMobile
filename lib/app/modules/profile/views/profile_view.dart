@@ -13,7 +13,7 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
-  int currentIndex = 3;
+  int currentIndex = 4;
   bool _isEditable = false;
 
   final ProfileController _profileController = Get.put(ProfileController());
@@ -76,7 +76,7 @@ class _ProfileViewState extends State<ProfileView> {
                               Obx(() => CircleAvatar(
                                     radius: 60,
                                     backgroundImage: _profileController
-                                                .photoUrl.value.isNotEmpty
+                                            .photoUrl.value.isNotEmpty
                                         ? NetworkImage(
                                             _profileController.photoUrl.value)
                                         : AssetImage('assets/profildefault.png')
@@ -87,10 +87,15 @@ class _ProfileViewState extends State<ProfileView> {
                                 padding: EdgeInsets.symmetric(
                                     vertical: 8, horizontal: 16),
                                 child: TextButton(
-                                  onPressed: () =>
-                                      _profileController.pickProfileImage(
-                                    _profileController.getCurrentUserId()!,
-                                  ),
+                                  onPressed: () {
+                                    // Memanggil fungsi untuk memilih gambar
+                                    // For choosing the camera or gallery, update this to specify the ImageSource
+                                    _profileController.pickProfileImage(
+                                      _profileController.getCurrentUserId()!,
+                                      ImageSource
+                                          .gallery, // or ImageSource.camera, based on your logic
+                                    );
+                                  },
                                   child: Text(
                                     'Edit Photo or Avatar',
                                     style: TextStyle(
@@ -227,30 +232,60 @@ class _ProfileViewState extends State<ProfileView> {
                                 _profileController.instagram.value = value;
                               },
                             )),
-
-                        SizedBox(height: 10),
                         // Additional TextFields for phone, email, etc., similar to the above TextField
-                        SizedBox(height: 30),
+                        SizedBox(height: 15),
                         Center(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (_isEditable) {
-                                _profileController.saveDataToFirestore(
-                                    _profileController.getCurrentUserId()!);
-                              }
-                              setState(() {
-                                _isEditable = !_isEditable;
-                              });
-                            },
-                            child: Text(
-                              _isEditable ? 'Save Profile' : 'Update Profile',
-                              style: TextStyle(color: Colors.white),
+                          child: Container(
+                            width: double
+                                .infinity, // Makes the button take the full width of the screen
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_isEditable) {
+                                  _profileController.saveDataToFirestore(
+                                      _profileController.getCurrentUserId()!);
+                                }
+                                setState(() {
+                                  _isEditable = !_isEditable;
+                                });
+                              },
+                              child: Text(
+                                _isEditable ? 'Save Profile' : 'Update Profile',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[800],
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      10), // Sets the border radius to 10
+                                ),
+                              ),
                             ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromRGBO(31, 31, 31, 1),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 30, vertical: 15),
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        Center(
+                          child: Container(
+                            width: double
+                                .infinity, // Makes the button take the full width of the screen
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Get.toNamed(Routes.SETTING_AUDIO);
+                              },
+                              child: Text(
+                               'Setting Opening Audio',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[800],
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      10), // Sets the border radius to 10
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -282,13 +317,17 @@ class _ProfileViewState extends State<ProfileView> {
               Get.toNamed(Routes.NEWS);
               break;
             case 3:
+              Get.toNamed(Routes.PLAYBACKS); // Arahkan ke Playbacks
+              break;
+
+            case 4:
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
                     title: const Text('Peringatan'),
                     content:
-                        const Text('Anda sedang berada di halaman Profile'),
+                        const Text('Anda sedang berada di halaman PlayBacks'),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () {
@@ -365,6 +404,24 @@ class _ProfileViewState extends State<ProfileView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (currentIndex == 3)
+                    Container(
+                      height: 3,
+                      width: 34,
+                      color: Colors.white,
+                    ),
+                  Icon(Icons.play_arrow), // Icon Playbacks
+                ],
+              ),
+            ),
+            label: 'Playbacks',
+          ),
+          BottomNavigationBarItem(
+            icon: Container(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (currentIndex == 4)
                     Container(
                       height: 3,
                       width: 34,

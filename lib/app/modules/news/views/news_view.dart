@@ -107,118 +107,141 @@ class NewsView extends GetView<NewsController> {
         );
       }),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Menampilkan semua item
-        backgroundColor: Colors.red[700],
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        currentIndex: currentIndex, // Menandakan halaman profil sedang aktif
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Get.toNamed(Routes.HOMEPAGE);
-              break;
-            case 1:
-              Get.toNamed(Routes.SCHEDULE);
-              break;
-            case 2:
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Peringatan'),
-                    content: const Text('Anda sedang berada di halaman Berita'),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () {
-                          Get.back(); // Tutup dialog
-                        },
-                        child: const Text('OK'),
-                      ),
-                    ],
-                  );
-                },
-              );
-              break;
-            case 3:
-              Get.toNamed(Routes.PROFILE);
-              break;
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Container(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (currentIndex == 0) // Ganti '2' dengan 'currentIndex'
-                    Container(
-                      height: 3,
-                      width: 34,
-                      color: Colors.white,
-                    ),
-                  Icon(Icons.home),
-                ],
+  type: BottomNavigationBarType.fixed,
+  backgroundColor: Colors.red[700],
+  selectedItemColor: Colors.white,
+  unselectedItemColor: Colors.white70,
+  currentIndex: currentIndex,
+  onTap: (index) {
+    switch (index) {
+      case 0:
+        Get.toNamed(Routes.HOMEPAGE);
+        break;
+      case 1:
+        Get.toNamed(Routes.SCHEDULE);
+        break;
+      case 2:
+       showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Peringatan'),
+              content: const Text('Anda sedang berada di halaman News'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        break;
+        
+      case 3:
+      Get.toNamed(Routes.PLAYBACKS); // Arahkan ke Playbacks
+        break;
+       
+      case 4:
+      Get.toNamed(Routes.PROFILE);
+        break;
+    }
+  },
+  items: [
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 0)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
               ),
-            ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (currentIndex == 1)
-                    Container(
-                      height: 3,
-                      width: 34,
-                      color: Colors.white,
-                    ),
-                  Icon(Icons.calendar_today),
-                ],
-              ),
-            ),
-            label: 'Schedule',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (currentIndex == 2)
-                    Container(
-                      height: 3,
-                      width: 34,
-                      color: Colors.white,
-                    ),
-                  Icon(Icons.article),
-                ],
-              ),
-            ),
-            label: 'News',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (currentIndex == 3)
-                    Container(
-                      height: 3,
-                      width: 34,
-                      color: Colors.white,
-                    ),
-                  Icon(Icons.person),
-                ],
-              ),
-            ),
-            label: 'Profil',
-          ),
-        ],
+            Icon(Icons.home),
+          ],
+        ),
       ),
+      label: 'Home',
+    ),
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 1)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
+              ),
+            Icon(Icons.calendar_today),
+          ],
+        ),
+      ),
+      label: 'Schedule',
+    ),
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 2)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
+              ),
+            Icon(Icons.newspaper),
+          ],
+        ),
+      ),
+      label: 'News',
+    ),
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 3)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
+              ),
+            Icon(Icons.play_arrow), // Icon Playbacks
+          ],
+        ),
+      ),
+      label: 'Playbacks',
+    ),
+    BottomNavigationBarItem(
+      icon: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentIndex == 4)
+              Container(
+                height: 3,
+                width: 34,
+                color: Colors.white,
+              ),
+            Icon(Icons.person),
+          ],
+        ),
+      ),
+      label: 'Profile',
+    ),
+  ],
+),
     );
   }
 }
