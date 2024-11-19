@@ -90,8 +90,7 @@ class HomepageController extends GetxController {
   }
 
   @override
-  void onClose() {
-    textController.dispose(); // Membersihkan controller saat widget ditutup
+  void onClose() { // Membersihkan controller saat widget ditutup
     super.onClose();
   }
 }
