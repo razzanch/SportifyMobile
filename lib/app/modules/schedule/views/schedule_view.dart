@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:myapp/app/modules/create_schedule/controllers/create_schedule_controller.dart';
 import 'package:myapp/app/modules/create_schedule/views/create_schedule_view.dart';
 import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
@@ -29,26 +30,29 @@ class _ScheduleViewState extends State<ScheduleView> {
   }
 
 
-void showTaskDetailsDialog(BuildContext context, Map<String, dynamic> task) async {
-  // Parse target location to LatLng
-  final String location = task['location'];
+void showTaskDetailsDialog(
+    BuildContext context, Map<String, dynamic> task) async {
+  // Gunakan controller untuk mendapatkan koordinat dari nama lokasi
+  final controller = CreateScheduleController();
+  final String location = task['location']; // Nama lokasi (contoh: Google 2000)
+  
   late latlong2.LatLng targetLocation;
 
-  if (location.contains(',')) {
-    try {
-      final coords = location.split(',');
-      targetLocation = latlong2.LatLng(
-        double.parse(coords[0].trim()),
-        double.parse(coords[1].trim()),
-      );
-    } catch (e) {
-      targetLocation = latlong2.LatLng(0, 0); // Default fallback
-    }
+  // Konversi nama lokasi menjadi koordinat
+  await controller.getCoordinatesFromAddress(location);
+  
+  // Gunakan koordinat hasil konversi
+  if (controller.latitude.value != 0.0 && controller.longitude.value != 0.0) {
+    targetLocation = latlong2.LatLng(
+      controller.latitude.value,
+      controller.longitude.value,
+    );
   } else {
-    targetLocation = latlong2.LatLng(0, 0); // Default fallback
+    // Default lokasi jika konversi gagal
+    targetLocation = latlong2.LatLng(0.0, 0.0);
   }
 
-  // Get current location
+  // Dapatkan lokasi saat ini
   late latlong2.LatLng currentLocation;
   try {
     Position position = await Geolocator.getCurrentPosition(
@@ -60,7 +64,7 @@ void showTaskDetailsDialog(BuildContext context, Map<String, dynamic> task) asyn
     print("Error getting current location: $e");
   }
 
-  // Show dialog
+  // Tampilkan dialog
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -70,7 +74,7 @@ void showTaskDetailsDialog(BuildContext context, Map<String, dynamic> task) asyn
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         content: SizedBox(
-          height: 400, // Tetapkan tinggi eksplisit untuk konten
+          height: 400,
           width: 400,
           child: Column(
             children: [
@@ -88,7 +92,7 @@ void showTaskDetailsDialog(BuildContext context, Map<String, dynamic> task) asyn
                     ),
                     MarkerLayer(
                       markers: [
-                        // Marker for current location
+                        // Marker lokasi saat ini
                         Marker(
                           point: currentLocation,
                           builder: (ctx) => Icon(
@@ -97,7 +101,7 @@ void showTaskDetailsDialog(BuildContext context, Map<String, dynamic> task) asyn
                             size: 40.0,
                           ),
                         ),
-                        // Marker for target location
+                        // Marker lokasi target
                         Marker(
                           point: targetLocation,
                           builder: (ctx) => Icon(
@@ -108,7 +112,7 @@ void showTaskDetailsDialog(BuildContext context, Map<String, dynamic> task) asyn
                         ),
                       ],
                     ),
-                    // Draw a polyline between current and target locations
+                    // Polyline antara lokasi saat ini dan target
                     PolylineLayer(
                       polylines: [
                         Polyline(
@@ -168,6 +172,7 @@ void showTaskDetailsDialog(BuildContext context, Map<String, dynamic> task) asyn
     },
   );
 }
+
 
 
 

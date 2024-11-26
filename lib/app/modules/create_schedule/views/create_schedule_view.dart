@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
+import 'package:myapp/app/modules/create_schedule/controllers/create_schedule_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 // ignore: must_be_immutable
@@ -33,37 +34,37 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
   final TextEditingController controllerName = TextEditingController();
   final TextEditingController controllerLocation = TextEditingController();
   final TextEditingController controllerDate = TextEditingController();
+  final CreateScheduleController controllerConvert =
+      Get.put(CreateScheduleController());
 
   late double widthScreen;
   late double heightScreen;
   DateTime selectedDate = DateTime.now().add(Duration(days: 1));
   bool isLoading = false;
   String currentUserUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-  
 
   // Location and Map Data
   latlong2.LatLng currentLocation = latlong2.LatLng(0, 0);
-  latlong2.LatLng targetLocation = latlong2.LatLng(0, 0);
+
   bool isMapLoading = true;
   final distanceInKm = 0.0.obs;
   final distanceInMeters = 0.0.obs;
   final MapController mapController = MapController();
 
-
   void _calculateDistance() {
-  if (currentLocation.latitude != 0 && currentLocation.longitude != 0 &&
-      targetLocation.latitude != 0 && targetLocation.longitude != 0) {
-    final distanceCalculator = latlong2.Distance();
-    final double distance = distanceCalculator.as(
-      latlong2.LengthUnit.Meter, // Menggunakan satuan meter
-      latlong2.LatLng(currentLocation.latitude, currentLocation.longitude),
-      latlong2.LatLng(targetLocation.latitude, targetLocation.longitude),
-    );
-    distanceInKm.value = distance / 1000; // Simpan dalam kilometer juga jika diperlukan
-    distanceInMeters.value = distance; // Perbarui observable untuk meter
+      final distanceCalculator = latlong2.Distance();
+      final double distance = distanceCalculator.as(
+        latlong2.LengthUnit.Meter, // Menggunakan satuan meter
+        latlong2.LatLng(currentLocation.latitude, currentLocation.longitude),
+        latlong2.LatLng(controllerConvert.latitude.value,
+            controllerConvert.longitude.value),
+      );
+      distanceInKm.value =
+          distance / 1000; // Simpan dalam kilometer juga jika diperlukan
+      distanceInMeters.value = distance;
+      print("Distance Calculated: $distance meters"); // Perbarui observable untuk meter
+    
   }
-}
-
 
   @override
   void initState() {
@@ -83,6 +84,7 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
           controllerName.text = name;
           controllerLocation.text = location;
           controllerDate.text = dateString;
+          
         } catch (e) {
           print("Error parsing date: $e");
           controllerDate.text = '';
@@ -118,9 +120,9 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
           currentLocation =
               latlong2.LatLng(position.latitude, position.longitude);
           isMapLoading = false;
-           print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
+          print(
+              "Latitude: ${position.latitude}, Longitude: ${position.longitude}");
         });
-        _calculateDistance();
       } else if (status.isDenied) {
         // Izin ditolak
         _showSnackBarMessage(
@@ -155,11 +157,16 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
         // Assuming location format is "latitude,longitude"
         if (data['location'] != null && data['location'].contains(',')) {
           List<String> coords = data['location'].split(',');
-          targetLocation = latlong2.LatLng(
-            double.parse(coords[0].trim()),
-            double.parse(coords[1].trim()),
-          );
+          controllerConvert.latitude.value = double.parse(coords[0].trim());
+          controllerConvert.longitude.value = double.parse(coords[1].trim());
         }
+
+        await controllerConvert.getCoordinatesFromAddress(controllerConvert.address.value);
+
+  // Perbarui UI untuk merefleksikan data baru
+      setState(() {
+        _calculateDistance(); // Hitung jarak ulang dan perbarui jarak di UI
+      });
       }
     } catch (e) {
       print("Error loading data from Firebase: $e");
@@ -181,8 +188,6 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
       });
     }
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -206,80 +211,91 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
               style: TextStyle(color: Colors.white, fontSize: 18),
             ),
             SizedBox(
-  height: 300,
-  width: 360,
-  child: isMapLoading
-      ? Center(child: CircularProgressIndicator())
-      : ClipRRect(
-          borderRadius: BorderRadius.circular(20.0), // Border radius untuk map
-          child: Stack(
-            children: [
-              FlutterMap(
-                mapController: mapController, 
-                options: MapOptions(
-                  center: currentLocation,
-                  zoom: 13.0,
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                    subdomains: ['a', 'b', 'c'],
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: currentLocation,
-                        builder: (ctx) => Icon(
-                          Icons.my_location,
-                          color: Colors.blue,
-                          size: 40.0,
-                        ),
-                      ),
-                      Marker(
-                        point: targetLocation,
-                        builder: (ctx) => Icon(
-                          Icons.location_on,
-                          color: Colors.red,
-                          size: 40.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                  PolylineLayer(
-                    polylines: targetLocation.latitude != 0 &&
-                            targetLocation.longitude != 0
-                        ? [
-                            Polyline(
-                              points: [currentLocation, targetLocation],
-                              strokeWidth: 4.0,
-                              color: Colors.blue,
+              height: 300,
+              width: 360,
+              child: isMapLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                          20.0), // Border radius untuk map
+                      child: Stack(
+                        children: [
+                          FlutterMap(
+                            mapController: mapController,
+                            options: MapOptions(
+                              center: currentLocation,
+                              zoom: 13.0,
                             ),
-                          ]
-                        : [],
-                  ),
-                ],
-              ),
-              Positioned(
-                bottom: 16, // Posisi tombol melayang dari bawah
-                right: 16, // Posisi tombol melayang dari kanan
-                child: FloatingActionButton(
-                  backgroundColor: Colors.red[700],
-                  onPressed: () {
-                    // Logika untuk memindahkan peta ke currentLocation
-                    mapController.move(currentLocation, 13.0); // Zoom level tetap 13
-                  },
-                  child: Icon(
-                    Icons.my_location,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-),
-
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                subdomains: ['a', 'b', 'c'],
+                              ),
+                              MarkerLayer(
+                                markers: [
+                                  Marker(
+                                    point: currentLocation,
+                                    builder: (ctx) => Icon(
+                                      Icons.my_location,
+                                      color: Colors.blue,
+                                      size: 40.0,
+                                    ),
+                                  ),
+                                  Marker(
+                                    point: latlong2.LatLng(
+                                      controllerConvert.latitude.value,
+                                      controllerConvert.longitude.value,
+                                    ),
+                                    builder: (ctx) => Icon(
+                                      Icons.location_on,
+                                      color: Colors.red,
+                                      size: 40.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              PolylineLayer(
+                                polylines: controllerConvert.latitude.value !=
+                                            0 &&
+                                        controllerConvert.longitude.value != 0
+                                    ? [
+                                        Polyline(
+                                          points: [
+                                            currentLocation,
+                                            latlong2.LatLng(
+                                              controllerConvert.latitude.value,
+                                              controllerConvert.longitude.value,
+                                            ),
+                                          ],
+                                          strokeWidth: 4.0,
+                                          color: Colors.blue,
+                                        ),
+                                      ]
+                                    : [],
+                              ),
+                            ],
+                          ),
+                          Positioned(
+                            bottom: 16, // Posisi tombol melayang dari bawah
+                            right: 16, // Posisi tombol melayang dari kanan
+                            child: FloatingActionButton(
+                              backgroundColor: Colors.red[700],
+                              onPressed: () {
+                                // Logika untuk memindahkan peta ke currentLocation
+                                mapController.move(currentLocation,
+                                    13.0); // Zoom level tetap 13
+                              },
+                              child: Icon(
+                                Icons.my_location,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
             SizedBox(height: 20),
           ],
         ),
@@ -303,31 +319,26 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
             style: TextStyle(fontSize: 18.0, color: Colors.white),
           ),
           TextField(
-  controller: controllerLocation,
-  decoration: InputDecoration(
-    labelText: 'Location (lat,long)',
-    labelStyle: TextStyle(color: Colors.white),
-  ),
-  style: TextStyle(fontSize: 18.0, color: Colors.white),
-  onSubmitted: (value) {
-    if (value.contains(',')) {
-      try {
-        List<String> coords = value.split(',');
-        double latitude = double.parse(coords[0].trim());
-        double longitude = double.parse(coords[1].trim());
+            controller: controllerLocation,
+            decoration: InputDecoration(
+              labelText: 'Location (lat,long)',
+              labelStyle: TextStyle(color: Colors.white),
+            ),
+            style: TextStyle(fontSize: 18.0, color: Colors.white),
+            onChanged: (value) {
+              controllerConvert.address.value = value;
+            },
+           onEditingComplete: () async {
+  // Pastikan proses async selesai
+  await controllerConvert.getCoordinatesFromAddress(controllerConvert.address.value);
 
-        setState(() {
-          targetLocation = latlong2.LatLng(latitude, longitude);
-        });
-         _calculateDistance(); // Hitung jarak setelah targetLocation diperbarui
-      } catch (e) {
-        _showSnackBarMessage("Invalid location format. Use 'lat,long'");
-      }
-    } else {
-      _showSnackBarMessage("Please enter location in 'lat,long' format");
-    }
-  },
-),
+  // Perbarui UI untuk merefleksikan data baru
+  setState(() {
+    _calculateDistance(); // Hitung jarak ulang dan perbarui jarak di UI
+  });
+},
+
+          ),
 
           TextField(
             controller: controllerDate,
@@ -341,10 +352,10 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
             onTap: () => _selectDate(context),
           ),
           SizedBox(height: 8.0), // Spasi kecil
-Obx(() => Text(
-  'Distance: ${distanceInKm.value.toStringAsFixed(2)} km (${distanceInMeters.value.toStringAsFixed(2)} m)',
-  style: TextStyle(fontSize: 16.0, color: Colors.white),
-)),
+          Obx(() => Text(
+                'Distance: ${distanceInKm.value.toStringAsFixed(2)} km (${distanceInMeters.value.toStringAsFixed(2)} m)',
+                style: TextStyle(fontSize: 16.0, color: Colors.white),
+              )),
         ],
       ),
     );
