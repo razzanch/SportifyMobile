@@ -70,9 +70,11 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
   void initState() {
     super.initState();
 
-    if(!widget.isEdit){
+    _getCurrentLocation();
+
+    if (!widget.isEdit) {
       controllerConvert.latitude.value = 0.0;
-controllerConvert.longitude.value = 0.0;
+      controllerConvert.longitude.value = 0.0;
     }
 
     // Capture arguments using GetX
@@ -100,16 +102,12 @@ controllerConvert.longitude.value = 0.0;
     }
 
     if (widget.isEdit && widget.documentId.isNotEmpty) {
-      controllerConvert.latitude.value = 0.0;
-      controllerConvert.longitude.value = 0.0;
-      _getCurrentLocation();
       _loadDataFromFirebase(widget.documentId);
     } else {
       controllerDate.text = DateFormat('d MMMM yyyy').format(selectedDate);
     }
 
     // Get current user location
-    _getCurrentLocation();
   }
 
   Future<void> _getCurrentLocation() async {
@@ -148,8 +146,6 @@ controllerConvert.longitude.value = 0.0;
 
   Future<void> _loadDataFromFirebase(String documentId) async {
     try {
-
-
       DocumentSnapshot documentSnapshot =
           await firestore.collection('sports').doc(documentId).get();
 
@@ -164,10 +160,20 @@ controllerConvert.longitude.value = 0.0;
         selectedDate = DateFormat('d MMMM yyyy').parse(dateString);
         controllerDate.text = dateString;
 
+        // Pastikan lokasi saat ini sudah diinisialisasi
+      if (currentLocation.latitude == 0.0 && currentLocation.longitude == 0.0) {
+        await _getCurrentLocation();
+      }
+
         await controllerConvert
             .getCoordinatesFromAddress(controllerConvert.address.value);
 
-        // Hitung jarak setelah koordinat diperbarui
+        // Cetak nilai koordinat yang telah dihasilkan
+        print(
+            'Current location: ${currentLocation.latitude}, ${currentLocation.longitude}');
+        print(
+            'ControllerConvert location: ${controllerConvert.latitude.value}, ${controllerConvert.longitude.value}');
+
         setState(() {
           _calculateDistance();
         }); // Hitung jarak ulang dan perbarui jarak di UI
