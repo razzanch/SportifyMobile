@@ -52,23 +52,28 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
   final MapController mapController = MapController();
 
   void _calculateDistance() {
-      final distanceCalculator = latlong2.Distance();
-      final double distance = distanceCalculator.as(
-        latlong2.LengthUnit.Meter, // Menggunakan satuan meter
-        latlong2.LatLng(currentLocation.latitude, currentLocation.longitude),
-        latlong2.LatLng(controllerConvert.latitude.value,
-            controllerConvert.longitude.value),
-      );
-      distanceInKm.value =
-          distance / 1000; // Simpan dalam kilometer juga jika diperlukan
-      distanceInMeters.value = distance;
-      print("Distance Calculated: $distance meters"); // Perbarui observable untuk meter
-    
+    final distanceCalculator = latlong2.Distance();
+    final double distance = distanceCalculator.as(
+      latlong2.LengthUnit.Meter, // Menggunakan satuan meter
+      latlong2.LatLng(currentLocation.latitude, currentLocation.longitude),
+      latlong2.LatLng(
+          controllerConvert.latitude.value, controllerConvert.longitude.value),
+    );
+    distanceInKm.value =
+        distance / 1000; // Simpan dalam kilometer juga jika diperlukan
+    distanceInMeters.value = distance;
+    print(
+        "Distance Calculated: $distance meters"); // Perbarui observable untuk meter
   }
 
   @override
   void initState() {
     super.initState();
+
+    if(!widget.isEdit){
+      controllerConvert.latitude.value = 0.0;
+controllerConvert.longitude.value = 0.0;
+    }
 
     // Capture arguments using GetX
     final arguments = Get.arguments;
@@ -84,7 +89,6 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
           controllerName.text = name;
           controllerLocation.text = location;
           controllerDate.text = dateString;
-          
         } catch (e) {
           print("Error parsing date: $e");
           controllerDate.text = '';
@@ -96,6 +100,9 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
     }
 
     if (widget.isEdit && widget.documentId.isNotEmpty) {
+      controllerConvert.latitude.value = 0.0;
+      controllerConvert.longitude.value = 0.0;
+      _getCurrentLocation();
       _loadDataFromFirebase(widget.documentId);
     } else {
       controllerDate.text = DateFormat('d MMMM yyyy').format(selectedDate);
@@ -141,6 +148,8 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
 
   Future<void> _loadDataFromFirebase(String documentId) async {
     try {
+
+
       DocumentSnapshot documentSnapshot =
           await firestore.collection('sports').doc(documentId).get();
 
@@ -149,24 +158,19 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
             documentSnapshot.data() as Map<String, dynamic>;
         controllerName.text = data['name'] ?? '';
         controllerLocation.text = data['location'] ?? '';
+        controllerConvert.address.value = data['location'] ?? '';
 
         String dateString = data['date'] ?? '';
         selectedDate = DateFormat('d MMMM yyyy').parse(dateString);
         controllerDate.text = dateString;
 
-        // Assuming location format is "latitude,longitude"
-        if (data['location'] != null && data['location'].contains(',')) {
-          List<String> coords = data['location'].split(',');
-          controllerConvert.latitude.value = double.parse(coords[0].trim());
-          controllerConvert.longitude.value = double.parse(coords[1].trim());
-        }
+        await controllerConvert
+            .getCoordinatesFromAddress(controllerConvert.address.value);
 
-        await controllerConvert.getCoordinatesFromAddress(controllerConvert.address.value);
-
-  // Perbarui UI untuk merefleksikan data baru
-      setState(() {
-        _calculateDistance(); // Hitung jarak ulang dan perbarui jarak di UI
-      });
+        // Hitung jarak setelah koordinat diperbarui
+        setState(() {
+          _calculateDistance();
+        }); // Hitung jarak ulang dan perbarui jarak di UI
       }
     } catch (e) {
       print("Error loading data from Firebase: $e");
@@ -237,8 +241,8 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
                                   Marker(
                                     point: currentLocation,
                                     builder: (ctx) => Icon(
-                                      Icons.my_location,
-                                      color: Colors.blue,
+                                      Icons.person_pin,
+                                      color: Colors.red,
                                       size: 40.0,
                                     ),
                                   ),
@@ -249,7 +253,7 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
                                     ),
                                     builder: (ctx) => Icon(
                                       Icons.location_on,
-                                      color: Colors.red,
+                                      color: Colors.black,
                                       size: 40.0,
                                     ),
                                   ),
@@ -269,7 +273,7 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
                                             ),
                                           ],
                                           strokeWidth: 4.0,
-                                          color: Colors.blue,
+                                          color: Colors.black,
                                         ),
                                       ]
                                     : [],
@@ -280,14 +284,14 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
                             bottom: 16, // Posisi tombol melayang dari bawah
                             right: 16, // Posisi tombol melayang dari kanan
                             child: FloatingActionButton(
-                              backgroundColor: Colors.red[700],
+                              backgroundColor: Colors.red,
                               onPressed: () {
                                 // Logika untuk memindahkan peta ke currentLocation
                                 mapController.move(currentLocation,
                                     13.0); // Zoom level tetap 13
                               },
                               child: Icon(
-                                Icons.my_location,
+                                Icons.person_pin,
                                 color: Colors.white,
                               ),
                             ),
@@ -321,23 +325,24 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
           TextField(
             controller: controllerLocation,
             decoration: InputDecoration(
-              labelText: 'Location (lat,long)',
+              labelText: 'Location (Place Name or Full Address)',
               labelStyle: TextStyle(color: Colors.white),
             ),
             style: TextStyle(fontSize: 18.0, color: Colors.white),
             onChanged: (value) {
               controllerConvert.address.value = value;
             },
-           onEditingComplete: () async {
-  // Pastikan proses async selesai
-  await controllerConvert.getCoordinatesFromAddress(controllerConvert.address.value);
+            onEditingComplete: () async {
+              FocusScope.of(context).unfocus();
+              // Pastikan proses async selesai
+              await controllerConvert
+                  .getCoordinatesFromAddress(controllerConvert.address.value);
 
-  // Perbarui UI untuk merefleksikan data baru
-  setState(() {
-    _calculateDistance(); // Hitung jarak ulang dan perbarui jarak di UI
-  });
-},
-
+              // Perbarui UI untuk merefleksikan data baru
+              setState(() {
+                _calculateDistance(); // Hitung jarak ulang dan perbarui jarak di UI
+              });
+            },
           ),
 
           TextField(

@@ -69,90 +69,143 @@ void showTaskDetailsDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
+        backgroundColor: Colors.black, // Ubah warna dialog menjadi hitam
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
         title: Text(
           task['name'],
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white, // Teks menjadi putih
+          ),
         ),
         content: SizedBox(
-          height: 400,
+          height: 450,
           width: 400,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Bagian Map
               Expanded(
-                child: FlutterMap(
-                  options: MapOptions(
-                    center: targetLocation,
-                    zoom: 13.0,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: FlutterMap(
+                    options: MapOptions(
+                      center: targetLocation,
+                      zoom: 13.0,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        subdomains: ['a', 'b', 'c'],
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          // Marker lokasi saat ini
+                          Marker(
+                            point: currentLocation,
+                            builder: (ctx) => Icon(
+                              Icons.person_pin,
+                              color: Colors.red,
+                              size: 40.0,
+                            ),
+                          ),
+                          // Marker lokasi target
+                          Marker(
+                            point: targetLocation,
+                            builder: (ctx) => Icon(
+                              Icons.location_on,
+                              color: Colors.black,
+                              size: 40.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Polyline antara lokasi saat ini dan target
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: [currentLocation, targetLocation],
+                            strokeWidth: 4.0,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
+              ),
+              Divider(color: Colors.grey), // Divider untuk memisahkan map dan detail lokasi
+
+              // Detail Lokasi dan Informasi Lain
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TileLayer(
-                      urlTemplate:
-                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                      subdomains: ['a', 'b', 'c'],
+                    Text(
+                      'Your Location:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    MarkerLayer(
-                      markers: [
-                        // Marker lokasi saat ini
-                        Marker(
-                          point: currentLocation,
-                          builder: (ctx) => Icon(
-                            Icons.my_location,
-                            color: Colors.blue,
-                            size: 40.0,
-                          ),
-                        ),
-                        // Marker lokasi target
-                        Marker(
-                          point: targetLocation,
-                          builder: (ctx) => Icon(
-                            Icons.location_on,
-                            color: Colors.red,
-                            size: 40.0,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      '${currentLocation.latitude}, ${currentLocation.longitude}',
+                      style: TextStyle(fontSize: 14, color: Colors.white),
                     ),
-                    // Polyline antara lokasi saat ini dan target
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: [currentLocation, targetLocation],
-                          strokeWidth: 4.0,
-                          color: Colors.blue,
-                        ),
-                      ],
+                    SizedBox(height: 8.0),
+                    Divider(color: Colors.grey),
+                    Text(
+                      'Target Location:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      location,
+                      style: TextStyle(fontSize: 14, color: Colors.white),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 8.0),
-              Text(
-                'Your Location: ${currentLocation.latitude}, ${currentLocation.longitude}',
-                style: TextStyle(fontSize: 14),
+              Divider(color: Colors.grey),
+
+              // Bagian Tanggal
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Date: ${task['date']}',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
-              Text(
-                'Target Location: $location',
-                style: TextStyle(fontSize: 14),
-              ),
-              SizedBox(height: 8.0),
-              Text(
-                'Date: ${task['date']}',
-                style: TextStyle(fontSize: 16),
-              ),
-              if (task.containsKey('description') &&
-                  task['description'] != null)
+
+              // Bagian Deskripsi (opsional)
+              if (task.containsKey('description') && task['description'] != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Divider(color: Colors.grey),
                       Text(
                         'Description:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       Text(
                         task['description'],
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -162,7 +215,10 @@ void showTaskDetailsDialog(
         ),
         actions: <Widget>[
           TextButton(
-            child: Text("Close"),
+            child: Text(
+              "Close",
+              style: TextStyle(color: Colors.white),
+            ),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -172,6 +228,7 @@ void showTaskDetailsDialog(
     },
   );
 }
+
 
 
 
