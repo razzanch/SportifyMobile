@@ -31,7 +31,7 @@ class CreateScheduleController extends GetxController {
 
           // Menampilkan Snackbar jika koordinat berhasil ditemukan
           Get.snackbar(
-            'Koordinat Ditemukan',
+            'Target Location Found',
             'Latitude: ${latitude.value}\nLongitude: ${longitude.value}',
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green,

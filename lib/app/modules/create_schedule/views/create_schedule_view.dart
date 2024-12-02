@@ -110,6 +110,20 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
     // Get current user location
   }
 
+  void _showSnackBarMessageCL(String message) {
+  final snackBar = SnackBar(
+    content: Text(
+      message,
+      style: TextStyle(color: Colors.white), // Warna teks
+    ),
+    backgroundColor: Colors.green, // Warna latar belakang Snackbar
+    duration: Duration(seconds: 3), // Durasi tampil Snackbar
+  );
+
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+
   Future<void> _getCurrentLocation() async {
     try {
       // Cek dan minta izin lokasi
@@ -127,6 +141,10 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
           isMapLoading = false;
           print(
               "Latitude: ${position.latitude}, Longitude: ${position.longitude}");
+         _showSnackBarMessageCL(
+  "Your Current Location: Latitude: ${position.latitude}, Longitude: ${position.longitude}"
+);
+
         });
       } else if (status.isDenied) {
         // Izin ditolak

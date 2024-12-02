@@ -9,6 +9,7 @@ import 'package:myapp/app/modules/create_schedule/views/create_schedule_view.dar
 import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
+import 'package:permission_handler/permission_handler.dart';
 
 
 class ScheduleView extends StatefulWidget {
@@ -35,12 +36,12 @@ void showTaskDetailsDialog(
   // Gunakan controller untuk mendapatkan koordinat dari nama lokasi
   final controller = CreateScheduleController();
   final String location = task['location']; // Nama lokasi (contoh: Google 2000)
-  
+
   late latlong2.LatLng targetLocation;
 
   // Konversi nama lokasi menjadi koordinat
   await controller.getCoordinatesFromAddress(location);
-  
+
   // Gunakan koordinat hasil konversi
   if (controller.latitude.value != 0.0 && controller.longitude.value != 0.0) {
     targetLocation = latlong2.LatLng(
@@ -55,10 +56,27 @@ void showTaskDetailsDialog(
   // Dapatkan lokasi saat ini
   late latlong2.LatLng currentLocation;
   try {
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-    currentLocation = latlong2.LatLng(position.latitude, position.longitude);
+    // Cek dan minta izin lokasi
+    var status = await Permission.location.request();
+
+    if (status.isGranted) {
+      // Izin diberikan
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      currentLocation = latlong2.LatLng(position.latitude, position.longitude);
+    } else if (status.isDenied) {
+      // Izin ditolak
+      _showSnackBarMessage(context,
+          "Location permission denied. Please enable it in settings.");
+      currentLocation = latlong2.LatLng(0.0, 0.0); // Default fallback
+    } else if (status.isPermanentlyDenied) {
+      // Izin ditolak secara permanen, arahkan ke pengaturan
+      _showSnackBarMessage(context,
+          "Location permission permanently denied. Please enable it in app settings.");
+      openAppSettings();
+      currentLocation = latlong2.LatLng(0.0, 0.0); // Default fallback
+    }
   } catch (e) {
     currentLocation = latlong2.LatLng(0, 0); // Default fallback
     print("Error getting current location: $e");
@@ -228,6 +246,20 @@ void showTaskDetailsDialog(
     },
   );
 }
+
+// Fungsi untuk menampilkan Snackbar
+void _showSnackBarMessage(BuildContext context, String message) {
+  final snackBar = SnackBar(
+    content: Text(
+      message,
+      style: TextStyle(color: Colors.white),
+    ),
+    backgroundColor: Colors.red,
+    duration: Duration(seconds: 3),
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
 
 
 
