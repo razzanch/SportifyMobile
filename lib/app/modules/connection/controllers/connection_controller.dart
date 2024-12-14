@@ -1,9 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:myapp/app/modules/create_schedule/controllers/create_schedule_controller.dart';
-
-
 import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 
 class ConnectionController extends GetxController {
@@ -34,15 +31,10 @@ class ConnectionController extends GetxController {
         _showSnackbar(true);
 
         // Sinkronkan data lokal ke Firestore saat koneksi kembali
-        String? userId = Get.find<ProfileController>()
-            .getCurrentUserId(); // Mengambil userId dari ProfileController
+        String? userId = Get.find<ProfileController>().getCurrentUserId(); // Mengambil userId dari ProfileController
         if (userId != null) {
-          Get.find<CreateScheduleController>().syncLocalData(userId);
-        }
-
-        String? userId2 = Get.find<CreateScheduleController>().getCurrentUserId();
-        if (userId2 != null) {
-          Get.find<CreateScheduleController>().syncLocalData(userId2);
+          Get.find<ProfileController>().syncLocalData(userId); // Panggil fungsi sinkronisasi
+  
         }
       }
     }
@@ -75,3 +67,4 @@ class ConnectionController extends GetxController {
     }
   }
 }
+
