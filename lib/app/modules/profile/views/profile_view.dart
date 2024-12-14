@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
-import 'dart:io';
+
 
 class ProfileView extends StatefulWidget {
   @override
@@ -11,7 +11,6 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  File? _image;
   final ImagePicker _picker = ImagePicker();
   int currentIndex = 4;
   bool _isEditable = false;
@@ -23,7 +22,6 @@ class _ProfileViewState extends State<ProfileView> {
 
     if (pickedFile != null) {
       setState(() {
-        _image = File(pickedFile.path);
         _profileController.photoUrl.value = pickedFile.path;
       });
     }
@@ -241,7 +239,7 @@ class _ProfileViewState extends State<ProfileView> {
                             child: ElevatedButton(
                               onPressed: () {
                                 if (_isEditable) {
-                                  _profileController.saveDataToFirestore(
+                                  _profileController.saveData(
                                       _profileController.getCurrentUserId()!);
                                 }
                                 setState(() {

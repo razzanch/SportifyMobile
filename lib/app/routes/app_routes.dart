@@ -17,6 +17,7 @@ abstract class Routes {
   static const SPORTACTIVITY = _Paths.SPORTACTIVITY;
   static const PLAYBACKS = _Paths.PLAYBACKS;
   static const SETTING_AUDIO = _Paths.SETTING_AUDIO;
+  static const CONNECTION = _Paths.CONNECTION;
 }
 
 abstract class _Paths {
@@ -35,4 +36,5 @@ abstract class _Paths {
   static const SPORTACTIVITY = '/sportactivity';
   static const PLAYBACKS = '/playbacks';
   static const SETTING_AUDIO = '/setting-audio';
+  static const CONNECTION = '/connection';
 }

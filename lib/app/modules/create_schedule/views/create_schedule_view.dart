@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
+import 'package:myapp/app/modules/connection/controllers/connection_controller.dart';
 import 'package:myapp/app/modules/create_schedule/controllers/create_schedule_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -111,18 +113,17 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
   }
 
   void _showSnackBarMessageCL(String message) {
-  final snackBar = SnackBar(
-    content: Text(
-      message,
-      style: TextStyle(color: Colors.white), // Warna teks
-    ),
-    backgroundColor: Colors.green, // Warna latar belakang Snackbar
-    duration: Duration(seconds: 3), // Durasi tampil Snackbar
-  );
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: TextStyle(color: Colors.white), // Warna teks
+      ),
+      backgroundColor: Colors.green, // Warna latar belakang Snackbar
+      duration: Duration(seconds: 3), // Durasi tampil Snackbar
+    );
 
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-}
-
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
   Future<void> _getCurrentLocation() async {
     try {
@@ -141,10 +142,8 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
           isMapLoading = false;
           print(
               "Latitude: ${position.latitude}, Longitude: ${position.longitude}");
-         _showSnackBarMessageCL(
-  "Your Current Location: Latitude: ${position.latitude}, Longitude: ${position.longitude}"
-);
-
+          _showSnackBarMessageCL(
+              "Your Current Location: Latitude: ${position.latitude}, Longitude: ${position.longitude}");
         });
       } else if (status.isDenied) {
         // Izin ditolak
@@ -179,9 +178,10 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
         controllerDate.text = dateString;
 
         // Pastikan lokasi saat ini sudah diinisialisasi
-      if (currentLocation.latitude == 0.0 && currentLocation.longitude == 0.0) {
-        await _getCurrentLocation();
-      }
+        if (currentLocation.latitude == 0.0 &&
+            currentLocation.longitude == 0.0) {
+          await _getCurrentLocation();
+        }
 
         await controllerConvert
             .getCoordinatesFromAddress(controllerConvert.address.value);
@@ -411,61 +411,77 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
     );
   }
 
-  Future<void> _saveData() async {
-    String name = controllerName.text;
-    String location = controllerLocation.text;
-    String date = controllerDate.text;
+ Future<void> _saveData() async {
+  String name = controllerName.text;
+  String location = controllerLocation.text;
+  String date = controllerDate.text;
 
-    // Validasi input
-    if (name.isEmpty) {
-      _showSnackBarMessage('Name is required');
-      return;
-    } else if (location.isEmpty) {
-      _showSnackBarMessage('Location is required');
-      return;
-    } else if (date.isEmpty) {
-      _showSnackBarMessage('Date is required');
-      return;
-    }
-
-    setState(() => isLoading = true);
-
-    try {
-      if (widget.isEdit) {
-        DocumentReference documentTask =
-            firestore.collection('sports').doc(widget.documentId);
-        await firestore.runTransaction((transaction) async {
-          DocumentSnapshot task = await transaction.get(documentTask);
-          if (task.exists) {
-            await transaction.update(
-              documentTask,
-              <String, dynamic>{
-                'uid': currentUserUid,
-                'name': name,
-                'location': location,
-                'date': date,
-              },
-            );
-          }
-        });
-        _showSnackBarMessage('Data updated successfully');
-      } else {
-        CollectionReference tasks = firestore.collection('sports');
-        await tasks.add(<String, dynamic>{
-          'uid': currentUserUid,
-          'name': name,
-          'location': location,
-          'date': date,
-        });
-        _showSnackBarMessage('Data saved successfully');
-      }
-      Navigator.pop(context, true);
-    } catch (e) {
-      _showSnackBarMessage('An error occurred. Please try again.');
-    } finally {
-      setState(() => isLoading = false);
-    }
+  // Validasi input
+  if (name.isEmpty) {
+    _showSnackBarMessage('Name is required');
+    return;
+  } else if (location.isEmpty) {
+    _showSnackBarMessage('Location is required');
+    return;
+  } else if (date.isEmpty) {
+    _showSnackBarMessage('Date is required');
+    return;
   }
+
+  Map<String, dynamic> data = {
+    'uid': currentUserUid,
+    'name': name,
+    'location': location,
+    'date': date,
+  };
+
+  setState(() => isLoading = true);
+
+  try {
+    if (Get.find<ConnectionController>().isConnected.value) {
+      // Jika terkoneksi, simpan ke Firestore menggunakan currentUserUid
+      DocumentReference documentTask =
+          firestore.collection('sports').doc(currentUserUid);
+
+      await firestore.runTransaction((transaction) async {
+        DocumentSnapshot task = await transaction.get(documentTask);
+        if (task.exists) {
+          // Perbarui dokumen jika sudah ada
+          await transaction.update(documentTask, data);
+        } else {
+          // Buat dokumen baru jika belum ada
+          await transaction.set(documentTask, data);
+        }
+      });
+
+      _showSnackBarMessage('Data saved successfully');
+      GetStorage().remove('local_schedule_data'); // Hapus data lokal jika berhasil disimpan
+    } else {
+      // Jika tidak terkoneksi, simpan data secara lokal
+      GetStorage().write('local_schedule_data', data);
+      _showSnackBarMessage('Connection lost. Data saved locally.');
+    }
+
+    print('Isi GetStorage (local_schedule_data):');
+    Map<String, dynamic>? storedData = GetStorage().read('local_schedule_data');
+    if (storedData != null) {
+      storedData.forEach((key, value) {
+        print('$key: $value');
+      });
+    } else {
+      print('Tidak ada data di GetStorage.');
+    }
+
+    Navigator.pop(context, true);
+  } catch (e) {
+    _showSnackBarMessage('An error occurred. Please try again.');
+    print('Error saving data: $e');
+  } finally {
+    setState(() => isLoading = false);
+  }
+}
+
+
 
   void _showSnackBarMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
