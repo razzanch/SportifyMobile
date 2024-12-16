@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
+import 'package:myapp/app/modules/connection/controllers/connection_controller.dart';
 
 
 class CreateScheduleController extends GetxController {
@@ -61,6 +64,51 @@ class CreateScheduleController extends GetxController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    }
+  }
+
+  final GetStorage storage = GetStorage('local_schedule_data');
+  
+  // Fungsi untuk sinkronisasi data lokal ke Firestore jika koneksi aktif
+  Future<void> syncLocalData() async {
+    // Periksa apakah koneksi tersedia
+    if (Get.find<ConnectionController>().isConnected.value) {
+      // Ambil data lokal yang disimpan dengan key 'schedules'
+      final List<Map<String, dynamic>>? localData = storage.read<List<dynamic>>('schedules')?.cast<Map<String, dynamic>>();
+
+      if (localData != null && localData.isNotEmpty) {
+        try {
+          // Loop untuk menyimpan data lokal satu per satu ke Firestore
+          for (var schedule in localData) {
+            // Misalnya data sudah memiliki field 'documentId' yang unik
+            await FirebaseFirestore.instance.collection('sports').add(schedule);
+          }
+
+          // Hapus data lokal setelah berhasil disinkronkan
+          storage.remove('schedules');
+
+          // Menampilkan pesan sukses
+          print('Data lokal berhasil disinkronisasi ke Firestore.');
+
+          // Debug: Cetak data di GetStorage setelah penghapusan
+          print('Isi GetStorage (local_schedule_data) setelah sinkronisasi:');
+          final storedData = storage.read<List<dynamic>>('schedules');
+          if (storedData != null && storedData.isNotEmpty) {
+            storedData.asMap().forEach((index, value) {
+              print('Data $index: $value');
+            });
+          } else {
+            print('Tidak ada data di GetStorage.');
+          }
+        } catch (e) {
+          // Tangani jika ada error saat sinkronisasi
+          print('Error saat menyinkronkan data lokal: $e');
+        }
+      } else {
+        print('Tidak ada data lokal yang perlu disinkronkan.');
+      }
+    } else {
+      print('Tidak ada koneksi. Tidak dapat menyinkronkan data.');
     }
   }
 }

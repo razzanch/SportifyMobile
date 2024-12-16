@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
+import 'package:myapp/app/modules/connection/controllers/connection_controller.dart';
 import 'package:myapp/app/modules/create_schedule/controllers/create_schedule_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -409,61 +411,87 @@ class _CreateScheduleViewState extends State<CreateScheduleView> {
     );
   }
 
-  Future<void> _saveData() async {
-    String name = controllerName.text;
-    String location = controllerLocation.text;
-    String date = controllerDate.text;
+Future<void> _saveData() async {
+  // Ambil input dari TextField
+  String name = controllerName.text;
+  String location = controllerLocation.text;
+  String date = controllerDate.text;
 
-    // Validasi input
-    if (name.isEmpty) {
-      _showSnackBarMessage('Name is required');
-      return;
-    } else if (location.isEmpty) {
-      _showSnackBarMessage('Location is required');
-      return;
-    } else if (date.isEmpty) {
-      _showSnackBarMessage('Date is required');
-      return;
-    }
+  // Validasi input
+  if (name.isEmpty) {
+    _showSnackBarMessage('Name is required');
+    return;
+  } else if (location.isEmpty) {
+    _showSnackBarMessage('Location is required');
+    return;
+  } else if (date.isEmpty) {
+    _showSnackBarMessage('Date is required');
+    return;
+  }
 
-    setState(() => isLoading = true);
+  // Data yang akan disimpan
+  final data = {
+    'uid': currentUserUid,
+    'name': name,
+    'location': location,
+    'date': date,
+    'documentId': widget.isEdit ? widget.documentId : DateTime.now().toString(),
+  };
 
-    try {
+  setState(() => isLoading = true);
+
+  // Controller koneksi
+  final connectionController = Get.find<ConnectionController>();
+  final storage = GetStorage('local_schedule_data');
+
+  try {
+    if (connectionController.isConnected.value) {
+      // Jika terkoneksi, simpan ke Firestore
       if (widget.isEdit) {
-        DocumentReference documentTask =
-            firestore.collection('sports').doc(widget.documentId);
-        await firestore.runTransaction((transaction) async {
-          DocumentSnapshot task = await transaction.get(documentTask);
-          if (task.exists) {
-            await transaction.update(
-              documentTask,
-              <String, dynamic>{
-                'uid': currentUserUid,
-                'name': name,
-                'location': location,
-                'date': date,
-              },
-            );
-          }
-        });
+        await FirebaseFirestore.instance
+            .collection('sports')
+            .doc(widget.documentId)
+            .set(data); // Menggunakan `set` untuk overwrite
         _showSnackBarMessage('Data updated successfully');
       } else {
-        CollectionReference tasks = firestore.collection('sports');
-        await tasks.add(<String, dynamic>{
-          'uid': currentUserUid,
-          'name': name,
-          'location': location,
-          'date': date,
-        });
+        await FirebaseFirestore.instance.collection('sports').add(data);
         _showSnackBarMessage('Data saved successfully');
       }
-      Navigator.pop(context, true);
-    } catch (e) {
-      _showSnackBarMessage('An error occurred. Please try again.');
-    } finally {
-      setState(() => isLoading = false);
+
+      // Hapus data lokal setelah sukses menyimpan
+      storage.remove('schedules');
+    } else {
+      // Jika tidak terkoneksi, simpan ke penyimpanan lokal
+      final List<Map<String, dynamic>> localData =
+          storage.read<List<dynamic>>('schedules')?.cast<Map<String, dynamic>>() ??
+              [];
+      localData.add(data);
+      storage.write('schedules', localData);
+
+      _showSnackBarMessage('No connection. Data saved locally.');
     }
+
+    // Debug: Cetak data di GetStorage
+    print('Isi GetStorage (local_schedule_data):');
+    final storedData = storage.read<List<dynamic>>('schedules');
+    if (storedData != null && storedData.isNotEmpty) {
+      storedData.asMap().forEach((index, value) {
+        print('Data $index: $value');
+      });
+    } else {
+      print('Tidak ada data di GetStorage.');
+    }
+  } catch (e) {
+    _showSnackBarMessage('An error occurred. Please try again.');
+    print('Error: $e');
+  } finally {
+    setState(() => isLoading = false);
   }
+
+  Navigator.pop(context, true);
+}
+
+
 
   void _showSnackBarMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(

@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:myapp/app/modules/create_schedule/controllers/create_schedule_controller.dart';
 import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 
 class ConnectionController extends GetxController {
@@ -34,11 +35,17 @@ class ConnectionController extends GetxController {
         String? userId = Get.find<ProfileController>().getCurrentUserId(); // Mengambil userId dari ProfileController
         if (userId != null) {
           Get.find<ProfileController>().syncLocalData(userId); // Panggil fungsi sinkronisasi
-  
+          // Cek apakah CreateScheduleController sudah terdaftar
+        if (!Get.isRegistered<CreateScheduleController>()) {
+          Get.put(CreateScheduleController()); // Fallback
+        }
+          Get.find<CreateScheduleController>().syncLocalData();
         }
       }
     }
   }
+
+  
 
   // Fungsi untuk menampilkan Snackbar
   void _showSnackbar(bool connected) {
