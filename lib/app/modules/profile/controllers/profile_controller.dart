@@ -9,8 +9,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myapp/app/modules/connection/controllers/connection_controller.dart';
 
-
-
 class ProfileController extends GetxController {
   var photoUrl = ''.obs;
   var nama = ''.obs;
@@ -25,7 +23,7 @@ class ProfileController extends GetxController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController instagramController = TextEditingController();
 
-    final storage = GetStorage(); // Initialize GetStorage
+  final storage = GetStorage(); // Initialize GetStorage
 
   // Fungsi untuk memuat data pengguna dari Firestore
   Future<void> loadUserData() async {
@@ -61,74 +59,76 @@ class ProfileController extends GetxController {
 
   // Menyimpan data ke Firestore
   Future<void> saveData(String userId) async {
-  Map<String, dynamic> data = {
-    'photo_url': photoUrl.value,
-    'nama': nama.value,
-    'nomorhandphone': nomorhandphone.value,
-    'email': email.value,
-    'instagram': instagram.value,
-  };
+    Map<String, dynamic> data = {
+      'photo_url': photoUrl.value,
+      'nama': nama.value,
+      'nomorhandphone': nomorhandphone.value,
+      'email': email.value,
+      'instagram': instagram.value,
+    };
 
-  try {
-    // Periksa koneksi menggunakan ConnectionController
-    if (Get.find<ConnectionController>().isConnected.value) {
-      // Jika terkoneksi, simpan ke Firestore
-      await FirebaseFirestore.instance.collection('profile').doc(userId).set(data);
-      storage.remove('local_profile_data'); // Hapus data lokal jika berhasil disimpan
-      print('Data berhasil disimpan ke Firestore.');
-     
-    } else {
-      // Jika tidak terkoneksi, simpan ke penyimpanan lokal
-      storage.write('local_profile_data', data);
-      print('Koneksi terputus. Data disimpan secara lokal.');
+    try {
+      // Periksa koneksi menggunakan ConnectionController
+      if (Get.find<ConnectionController>().isConnected.value) {
+        // Jika terkoneksi, simpan ke Firestore
+        await FirebaseFirestore.instance
+            .collection('profile')
+            .doc(userId)
+            .set(data);
+        storage.remove(
+            'local_profile_data'); // Hapus data lokal jika berhasil disimpan
+        print('Data berhasil disimpan ke Firestore.');
+      } else {
+        // Jika tidak terkoneksi, simpan ke penyimpanan lokal
+        storage.write('local_profile_data', data);
+        print('Koneksi terputus. Data disimpan secara lokal.');
+      }
+
+      // Print seluruh isi data yang ada di GetStorage
+      print('Isi GetStorage (local_profile_data):');
+      Map<String, dynamic>? storedData = storage.read('local_profile_data');
+      if (storedData != null) {
+        storedData.forEach((key, value) {
+          print('$key: $value');
+        });
+      } else {
+        print('Tidak ada data di GetStorage.');
+      }
+    } catch (e) {
+      print('Error menyimpan data: $e');
     }
-
-    // Print seluruh isi data yang ada di GetStorage
-    print('Isi GetStorage (local_profile_data):');
-    Map<String, dynamic>? storedData = storage.read('local_profile_data');
-    if (storedData != null) {
-      storedData.forEach((key, value) {
-        print('$key: $value');
-      });
-    } else {
-      print('Tidak ada data di GetStorage.');
-    }
-
-  } catch (e) {
-    print('Error menyimpan data: $e');
   }
-}
-
 
 // Fungsi untuk sinkronisasi data lokal ke Firestore jika koneksi aktif
-Future<void> syncLocalData(String userId) async {
-  // Periksa apakah koneksi tersedia
-  if (Get.find<ConnectionController>().isConnected.value) {
-    Map<String, dynamic>? localData = storage.read('local_profile_data');
-    
-    if (localData != null) {
-      try {
-        await FirebaseFirestore.instance.collection('profile').doc(userId).set(localData);
-        storage.remove('local_profile_data');
-        print('Data lokal berhasil disinkronisasi ke Firestore.');
-         // Print seluruh isi data yang ada di GetStorage
-    print('Isi GetStorage (local_profile_data):');
-    Map<String, dynamic>? storedData = storage.read('local_profile_data');
-    if (storedData != null) {
-      storedData.forEach((key, value) {
-        print('$key: $value');
-      });
-    } else {
-      print('Tidak ada data di GetStorage.');
-    }
-      } catch (e) {
-        print('Error saat menyinkronkan data lokal: $e');
+  Future<void> syncLocalData(String userId) async {
+    // Periksa apakah koneksi tersedia
+    if (Get.find<ConnectionController>().isConnected.value) {
+      Map<String, dynamic>? localData = storage.read('local_profile_data');
+
+      if (localData != null) {
+        try {
+          await FirebaseFirestore.instance
+              .collection('profile')
+              .doc(userId)
+              .set(localData);
+          storage.remove('local_profile_data');
+          print('Data lokal berhasil disinkronisasi ke Firestore.');
+          // Print seluruh isi data yang ada di GetStorage
+          print('Isi GetStorage (local_profile_data):');
+          Map<String, dynamic>? storedData = storage.read('local_profile_data');
+          if (storedData != null) {
+            storedData.forEach((key, value) {
+              print('$key: $value');
+            });
+          } else {
+            print('Tidak ada data di GetStorage.');
+          }
+        } catch (e) {
+          print('Error saat menyinkronkan data lokal: $e');
+        }
       }
     }
   }
-}
-
-
 
   // Fungsi untuk memunculkan dialog pemilihan sumber gambar
   Future<void> showImageSourceDialog(String userId) async {
@@ -137,7 +137,8 @@ Future<void> syncLocalData(String userId) async {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Pilih Sumber Gambar"),
-          content: Text("Pilih apakah Anda ingin mengambil foto dari Kamera atau Galeri."),
+          content: Text(
+              "Pilih apakah Anda ingin mengambil foto dari Kamera atau Galeri."),
           actions: <Widget>[
             TextButton(
               onPressed: () async {

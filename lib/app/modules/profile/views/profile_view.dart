@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
 
-
 class ProfileView extends StatefulWidget {
   @override
   _ProfileViewState createState() => _ProfileViewState();
@@ -138,8 +137,7 @@ class _ProfileViewState extends State<ProfileView> {
                                   borderSide: BorderSide.none,
                                 ),
                               ),
-                              controller: TextEditingController(
-                                  text: _profileController.nama.value),
+                              controller: _profileController.namaController,
                               onChanged: (value) {
                                 _profileController.nama.value = value;
                               },
@@ -167,9 +165,8 @@ class _ProfileViewState extends State<ProfileView> {
                                   borderSide: BorderSide.none,
                                 ),
                               ),
-                              controller: TextEditingController(
-                                  text:
-                                      _profileController.nomorhandphone.value),
+                              controller:
+                                  _profileController.nomorhandphoneController,
                               onChanged: (value) {
                                 _profileController.nomorhandphone.value = value;
                               },
@@ -196,8 +193,7 @@ class _ProfileViewState extends State<ProfileView> {
                                   borderSide: BorderSide.none,
                                 ),
                               ),
-                              controller: TextEditingController(
-                                  text: _profileController.email.value),
+                              controller: _profileController.emailController,
                               onChanged: (value) {
                                 _profileController.email.value = value;
                               },
@@ -224,8 +220,8 @@ class _ProfileViewState extends State<ProfileView> {
                                   borderSide: BorderSide.none,
                                 ),
                               ),
-                              controller: TextEditingController(
-                                  text: _profileController.instagram.value),
+                              controller:
+                                  _profileController.instagramController,
                               onChanged: (value) {
                                 _profileController.instagram.value = value;
                               },
@@ -272,7 +268,7 @@ class _ProfileViewState extends State<ProfileView> {
                                 Get.toNamed(Routes.SETTING_AUDIO);
                               },
                               child: Text(
-                               'Setting Opening Audio',
+                                'Setting Opening Audio',
                                 style: TextStyle(color: Colors.white),
                               ),
                               style: ElevatedButton.styleFrom(
