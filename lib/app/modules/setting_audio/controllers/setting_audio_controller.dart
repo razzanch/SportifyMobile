@@ -5,7 +5,7 @@ class SettingAudioController extends GetxController {
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   // URL audio dan visibilitas dropdown
-  var audioUrl = "https://e.top4top.io/m_32445jgn31.mp3".obs;
+  var audioUrl = "https://l.top4top.io/m_3245hy2nb1.mp3".obs;
   var isDropdownVisible = false.obs;
 
   // Status pemutaran, durasi total, dan posisi saat ini

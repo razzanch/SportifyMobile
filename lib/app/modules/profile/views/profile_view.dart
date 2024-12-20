@@ -12,7 +12,7 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   final ImagePicker _picker = ImagePicker();
   int currentIndex = 4;
-  bool _isEditable = false;
+  RxBool _isEditable = false.obs; 
 
   final ProfileController _profileController = Get.put(ProfileController());
 
@@ -46,7 +46,7 @@ class _ProfileViewState extends State<ProfileView> {
             color: Colors.white,
             onPressed: () {
               // Log out and navigate to login
-              Get.offNamed(Routes.LOGIN);
+              _profileController.logout();
             },
             tooltip: 'Logout',
           ),
@@ -117,19 +117,19 @@ class _ProfileViewState extends State<ProfileView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Obx(() => TextField(
-                              enabled: _isEditable,
+                              enabled: _isEditable.value,
                               style: TextStyle(
-                                  color: _isEditable
+                                  color: _isEditable.value
                                       ? Colors.black
                                       : Colors.white),
                               decoration: InputDecoration(
                                 filled: true,
-                                fillColor: _isEditable
+                                fillColor: _isEditable.value
                                     ? Colors.white
                                     : const Color.fromRGBO(31, 31, 31, 1),
                                 labelText: 'Name',
                                 labelStyle: TextStyle(
-                                    color: _isEditable
+                                    color: _isEditable.value
                                         ? Colors.black
                                         : Colors.white),
                                 border: OutlineInputBorder(
@@ -145,19 +145,19 @@ class _ProfileViewState extends State<ProfileView> {
 
                         SizedBox(height: 40),
                         Obx(() => TextField(
-                              enabled: _isEditable,
+                              enabled: _isEditable.value,
                               style: TextStyle(
-                                  color: _isEditable
+                                  color: _isEditable.value
                                       ? Colors.black
                                       : Colors.white),
                               decoration: InputDecoration(
                                 filled: true,
-                                fillColor: _isEditable
+                                fillColor: _isEditable.value
                                     ? Colors.white
                                     : const Color.fromRGBO(31, 31, 31, 1),
                                 labelText: 'Nomor Handphone',
                                 labelStyle: TextStyle(
-                                    color: _isEditable
+                                    color: _isEditable.value
                                         ? Colors.black
                                         : Colors.white),
                                 border: OutlineInputBorder(
@@ -173,19 +173,19 @@ class _ProfileViewState extends State<ProfileView> {
                             )),
                         SizedBox(height: 40),
                         Obx(() => TextField(
-                              enabled: _isEditable,
+                              enabled: _isEditable.value,
                               style: TextStyle(
-                                  color: _isEditable
+                                  color: _isEditable.value
                                       ? Colors.black
                                       : Colors.white),
                               decoration: InputDecoration(
                                 filled: true,
-                                fillColor: _isEditable
+                                fillColor: _isEditable.value
                                     ? Colors.white
                                     : const Color.fromRGBO(31, 31, 31, 1),
                                 labelText: 'Email',
                                 labelStyle: TextStyle(
-                                    color: _isEditable
+                                    color: _isEditable.value
                                         ? Colors.black
                                         : Colors.white),
                                 border: OutlineInputBorder(
@@ -200,19 +200,19 @@ class _ProfileViewState extends State<ProfileView> {
                             )),
                         SizedBox(height: 40),
                         Obx(() => TextField(
-                              enabled: _isEditable,
+                              enabled: _isEditable.value,
                               style: TextStyle(
-                                  color: _isEditable
+                                  color: _isEditable.value
                                       ? Colors.black
                                       : Colors.white),
                               decoration: InputDecoration(
                                 filled: true,
-                                fillColor: _isEditable
+                                fillColor: _isEditable.value
                                     ? Colors.white
                                     : const Color.fromRGBO(31, 31, 31, 1),
                                 labelText: 'Instagram',
                                 labelStyle: TextStyle(
-                                    color: _isEditable
+                                    color: _isEditable.value
                                         ? Colors.black
                                         : Colors.white),
                                 border: OutlineInputBorder(
@@ -234,16 +234,16 @@ class _ProfileViewState extends State<ProfileView> {
                                 .infinity, // Makes the button take the full width of the screen
                             child: ElevatedButton(
                               onPressed: () {
-                                if (_isEditable) {
+                                if (_isEditable.value) {
                                   _profileController.saveData(
                                       _profileController.getCurrentUserId()!);
                                 }
                                 setState(() {
-                                  _isEditable = !_isEditable;
+                                  _isEditable.value = !_isEditable.value;
                                 });
                               },
                               child: Text(
-                                _isEditable ? 'Save Profile' : 'Update Profile',
+                                _isEditable.value ? 'Save Profile' : 'Update Profile',
                                 style: TextStyle(color: Colors.white),
                               ),
                               style: ElevatedButton.styleFrom(

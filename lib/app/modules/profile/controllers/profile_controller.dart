@@ -8,6 +8,8 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myapp/app/modules/connection/controllers/connection_controller.dart';
+import 'package:myapp/app/modules/login/views/login_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileController extends GetxController {
   var photoUrl = ''.obs;
@@ -16,6 +18,7 @@ class ProfileController extends GetxController {
   var email = ''.obs;
   var instagram = ''.obs;
   final ImagePicker _picker = ImagePicker();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final TextEditingController namaController = TextEditingController();
   final TextEditingController nomorhandphoneController =
@@ -237,5 +240,17 @@ class ProfileController extends GetxController {
     } catch (e) {
       Get.snackbar("Error", "Gagal mengunggah foto profil: $e");
     }
+  }
+
+  void logout() async {
+    await _auth.signOut();
+
+    // Remove token and email from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('email'); // Hapus email saat logout
+
+    // Redirect to login page
+    Get.offAll(() => LoginView());
   }
 }
