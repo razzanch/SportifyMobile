@@ -26,9 +26,11 @@ class HomeController extends GetxController {
        await fetchAudioUrl(currentUser.uid);
      } else {
        isLoggedIn.value = false;
+      audioUrl.value = 'https://l.top4top.io/m_3245hy2nb1.mp3';
      }
    } else {
      isLoggedIn.value = false;
+     audioUrl.value = 'https://l.top4top.io/m_3245hy2nb1.mp3';
    }
  }
 
