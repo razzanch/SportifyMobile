@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,17 +9,26 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   RxBool isLoading = false.obs;
   final HomeController isLoggedIn = Get.put(HomeController());
   Stream<User?> get streamAuthStatus => _auth.authStateChanges();
+  var audioUrl = "https://l.top4top.io/m_3245hy2nb1.mp3".obs;
 
   Future<void> registerUser(String email, String password) async {
     try {
       isLoading.value = true;
-      await _auth.createUserWithEmailAndPassword(
+       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      String uid = userCredential.user?.uid ?? '';
+
+      // Simpan data audio dengan UID dari UserCredential
+      await _firestore.collection('audio').doc(uid).set({
+        'audio_url': audioUrl.value,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
       Get.snackbar('Success', 'Registration successful',
           backgroundColor: Colors.green);
       Get.off(LoginView()); // Navigasi ke halaman Login

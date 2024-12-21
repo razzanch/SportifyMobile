@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:myapp/app/modules/homepage/controllers/homepage_controller.dart';
 import 'package:myapp/app/modules/profile/controllers/profile_controller.dart';
 import 'package:myapp/app/routes/app_pages.dart';
 
+// ignore: must_be_immutable
 class HomepageView extends StatelessWidget {
   // Mengambil instance HomepageController menggunakan GetX
   final HomepageController controller = Get.put(HomepageController());
@@ -50,8 +53,8 @@ class HomepageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Setiap 1 detik, update gambar yang ditampilkan
-    Future.delayed(Duration(seconds: 1), () {
+    Timer.periodic(Duration(seconds: 3), (timer) {
+      // Cek jika currentIndex telah mencapai panjang list, jika ya mulai dari 0
       if (currentIndex.value < rotatingImages.length - 1) {
         currentIndex.value++;
       } else {
@@ -234,142 +237,143 @@ class HomepageView extends StatelessWidget {
 
       // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
-  type: BottomNavigationBarType.fixed,
-  backgroundColor: Colors.red[700],
-  selectedItemColor: Colors.white,
-  unselectedItemColor: Colors.white70,
-  currentIndex: currentIndexNow,
-  onTap: (index) {
-    switch (index) {
-      case 0:
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Peringatan'),
-              content: const Text('Anda sedang berada di halaman HomePage'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Get.back();
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-        break;
-        
-      case 1:
-        Get.toNamed(Routes.SCHEDULE);
-        break;
-      case 2:
-      Get.toNamed(Routes.NEWS);
-        break;
-        
-      case 3:
-      Get.toNamed(Routes.PLAYBACKS); // Arahkan ke Playbacks
-        break;
-       
-      case 4:
-      Get.toNamed(Routes.PROFILE);
-        break;
-    }
-  },
-  items: [
-    BottomNavigationBarItem(
-      icon: Container(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (currentIndex == 0)
-              Container(
-                height: 3,
-                width: 34,
-                color: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.red[700],
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
+        currentIndex: currentIndexNow,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Peringatan'),
+                    content:
+                        const Text('Anda sedang berada di halaman HomePage'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Get.back();
+                        },
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  );
+                },
+              );
+              break;
+
+            case 1:
+              Get.toNamed(Routes.SCHEDULE);
+              break;
+            case 2:
+              Get.toNamed(Routes.NEWS);
+              break;
+
+            case 3:
+              Get.toNamed(Routes.PLAYBACKS); // Arahkan ke Playbacks
+              break;
+
+            case 4:
+              Get.toNamed(Routes.PROFILE);
+              break;
+          }
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Container(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (currentIndex == 0)
+                    Container(
+                      height: 3,
+                      width: 34,
+                      color: Colors.white,
+                    ),
+                  Icon(Icons.home),
+                ],
               ),
-            Icon(Icons.home),
-          ],
-        ),
-      ),
-      label: 'Home',
-    ),
-    BottomNavigationBarItem(
-      icon: Container(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (currentIndex == 1)
-              Container(
-                height: 3,
-                width: 34,
-                color: Colors.white,
+            ),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Container(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (currentIndex == 1)
+                    Container(
+                      height: 3,
+                      width: 34,
+                      color: Colors.white,
+                    ),
+                  Icon(Icons.calendar_today),
+                ],
               ),
-            Icon(Icons.calendar_today),
-          ],
-        ),
-      ),
-      label: 'Schedule',
-    ),
-    BottomNavigationBarItem(
-      icon: Container(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (currentIndex == 2)
-              Container(
-                height: 3,
-                width: 34,
-                color: Colors.white,
+            ),
+            label: 'Schedule',
+          ),
+          BottomNavigationBarItem(
+            icon: Container(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (currentIndex == 2)
+                    Container(
+                      height: 3,
+                      width: 34,
+                      color: Colors.white,
+                    ),
+                  Icon(Icons.newspaper),
+                ],
               ),
-            Icon(Icons.newspaper),
-          ],
-        ),
-      ),
-      label: 'News',
-    ),
-    BottomNavigationBarItem(
-      icon: Container(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (currentIndex == 3)
-              Container(
-                height: 3,
-                width: 34,
-                color: Colors.white,
+            ),
+            label: 'News',
+          ),
+          BottomNavigationBarItem(
+            icon: Container(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (currentIndex == 3)
+                    Container(
+                      height: 3,
+                      width: 34,
+                      color: Colors.white,
+                    ),
+                  Icon(Icons.play_arrow), // Icon Playbacks
+                ],
               ),
-            Icon(Icons.play_arrow), // Icon Playbacks
-          ],
-        ),
-      ),
-      label: 'Playbacks',
-    ),
-    BottomNavigationBarItem(
-      icon: Container(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (currentIndex == 4)
-              Container(
-                height: 3,
-                width: 34,
-                color: Colors.white,
+            ),
+            label: 'Playbacks',
+          ),
+          BottomNavigationBarItem(
+            icon: Container(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (currentIndex == 4)
+                    Container(
+                      height: 3,
+                      width: 34,
+                      color: Colors.white,
+                    ),
+                  Icon(Icons.person),
+                ],
               ),
-            Icon(Icons.person),
-          ],
-        ),
+            ),
+            label: 'Profile',
+          ),
+        ],
       ),
-      label: 'Profile',
-    ),
-  ],
-),
     );
   }
 }
